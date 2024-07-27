@@ -79,9 +79,9 @@ WSGI_APPLICATION = 'class_scheduler.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'Class_Scheduler_Proj',
+        'NAME': 'Class_Scheduling_Proj',
         'USER': 'root',
-        'PASSWORD': 'password',
+        'PASSWORD': 'l@ve4CadenCool7!',
         'HOST': 'localhost',
         'PORT': '3306',
     }
