@@ -6,7 +6,26 @@
 import scrapy
 
 
-class TimetableScraperItem(scrapy.Item):
+class SectionItem(scrapy.Item):
     # define the fields for your item here like:
     # name = scrapy.Field()
-    pass
+    crn = scrapy.Field()
+    course = scrapy.Field()
+    class_type = scrapy.Field()
+    modality = scrapy.Field()
+    credit_hours = scrapy.Field()
+    capacity = scrapy.Field()
+    professor = scrapy.Field()
+    days = scrapy.Field()
+    begin_time = scrapy.Field()
+    end_time = scrapy.Field()
+    location = scrapy.Field()
+    exam_code = scrapy.Field()
+    
+class ProfessorItem(scrapy.Item):
+    first_name = scrapy.Field()
+    last_name = scrapy.Field()
+    department = scrapy.Field()
+    rating = scrapy.Field()
+    difficulty_level = scrapy.Field()
+    would_take_again = scrapy.Field()
