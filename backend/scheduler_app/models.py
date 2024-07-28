@@ -39,7 +39,7 @@ class Section(models.Model):
     modality = models.CharField(max_length=100)
     credit_hours = models.IntegerField()
     capacity = models.IntegerField()
-    professor = models.ForeignKey(Professor, on_delete=models.CASCADE)
+    professor = models.ForeignKey("Professor", on_delete=models.CASCADE)
     days = models.CharField(max_length=100)
     begin_time = models.TimeField()
     end_time = models.TimeField()
@@ -73,7 +73,7 @@ class User(models.Model):
 
 class Preference(models.Model):
     preference_id = models.AutoField(primary_key=True)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey("User", on_delete=models.CASCADE)
     tod_preference = models.CharField(max_length=100)
     dow_preference = models.CharField(max_length=100)
 
@@ -85,7 +85,7 @@ class Preference(models.Model):
         return f"{self.user} - {self.tod_preference} - {self.dow_preference}"
 
 class Weight(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey("User", on_delete=models.CASCADE)
     tod_weight = models.FloatField()
     dow_weight = models.FloatField()
     prof_weight = models.FloatField()
@@ -99,7 +99,7 @@ class Weight(models.Model):
 
 class Schedule(models.Model):
     schedule_id = models.AutoField(primary_key=True)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey("User", on_delete=models.CASCADE)
     crns = models.JSONField()
     created_at = models.DateTimeField(auto_now_add=True)
     score = models.FloatField()
@@ -113,7 +113,7 @@ class Schedule(models.Model):
 
 class ScheduleLog(models.Model):
     log_id = models.AutoField(primary_key=True)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey("User", on_delete=models.CASCADE)
     crns = models.JSONField()
     score = models.FloatField()
     created_at = models.DateTimeField(auto_now_add=True)
