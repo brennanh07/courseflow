@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'user_management',
     'scheduler_app',
     'scraping',
+    'rest_framework',
 ]
 
 MIDDLEWARE = [
