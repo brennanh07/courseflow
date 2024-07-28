@@ -7,6 +7,20 @@
 #     https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 #     https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 
+import os
+import sys
+import django
+
+# Add Django project directory to Python path
+sys.path.append(os.path.dirname(os.path.abspath('.')))
+
+# Set Django settings module
+os.environ["DJANGO_SETTINGS_MODULE"] = "backend.settings"
+
+# initialize Django
+django.setup()
+
+
 BOT_NAME = "timetable_scraper"
 
 SPIDER_MODULES = ["timetable_scraper.spiders"]
