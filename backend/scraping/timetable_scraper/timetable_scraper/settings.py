@@ -15,7 +15,7 @@ import django
 sys.path.append(os.path.dirname(os.path.abspath('.')))
 
 # Set Django settings module
-os.environ["DJANGO_SETTINGS_MODULE"] = "backend.settings"
+os.environ["DJANGO_SETTINGS_MODULE"] = "class_scheduler.settings"
 
 # initialize Django
 django.setup()
