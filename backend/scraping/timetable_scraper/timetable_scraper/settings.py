@@ -11,13 +11,13 @@ import os
 import sys
 import django
 
-# Add Django project directory to Python path
-sys.path.append(os.path.dirname(os.path.abspath('.')))
+# Adjust the path to point to the root of project
+project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(project_root)
 
 # Set Django settings module
 os.environ["DJANGO_SETTINGS_MODULE"] = "class_scheduler.settings"
 
-# initialize Django
 django.setup()
 
 
