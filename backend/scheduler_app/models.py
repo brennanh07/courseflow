@@ -40,9 +40,6 @@ class Section(models.Model):
     credit_hours = models.IntegerField()
     capacity = models.IntegerField()
     professor = models.ForeignKey("Professor", on_delete=models.CASCADE)
-    days = models.CharField(max_length=100)
-    begin_time = models.TimeField()
-    end_time = models.TimeField()
     location = models.CharField(max_length=100)
     exam_code = models.CharField(max_length=100)
 
@@ -53,6 +50,19 @@ class Section(models.Model):
 
     def __str__(self):
         return f"{self.course} by {self.professor}"
+    
+class SectionTime(models.Model):
+    crn = models.ForeignKey("Section", on_delete=models.CASCADE)
+    day = models.CharField(max_length=100)
+    begin_time = models.TimeField()
+    end_time = models.TimeField()
+
+    class Meta:
+        verbose_name = 'Section Time'
+        verbose_name_plural = 'Section Times'
+
+    def __str__(self):
+        return f"{self.section} - {self.day} - {self.begin_time} - {self.end_time}"
 
 class User(models.Model):
     user_id = models.AutoField(primary_key=True)
