@@ -44,7 +44,7 @@ class Section(models.Model):
     exam_code = models.CharField(max_length=100)
 
     class Meta:
-        ordering = ['begin_time']
+        ordering = ['crn']
         verbose_name = 'Class Section'
         verbose_name_plural = 'Class Sections'
 
