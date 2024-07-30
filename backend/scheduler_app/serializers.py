@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Subject, Professor, Section, User, Preference, Weight, Schedule, ScheduleLog
+from .models import Subject, Professor, Section, SectionTime, User, Preference, Weight, Schedule, ScheduleLog
 
 class SubjectSerializer(serializers.ModelSerializer):
     class Meta:
@@ -16,6 +16,11 @@ class SectionSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Section
+        fields = '__all__'
+        
+class SectionTimeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SectionTime
         fields = '__all__'
         
         
