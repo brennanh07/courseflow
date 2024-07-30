@@ -158,7 +158,7 @@ document.ttform.subj_code.options[149]=new Option("WGS - Women's and Gender Stud
 def extract_subjects(input_string):
     pattern = r'new Option\("([^"]+)"\,"([^"]+)"'
     matches = re.findall(pattern, input_string)
-    subjects = [{"abbreviation": match[1], "full_title": match[0]} for match in matches]
+    subjects = [{"abbreviation": match[1], "title": match[0]} for match in matches]
     return subjects
 
 
@@ -173,7 +173,7 @@ def insert_subjects(subjects):
     cursor = connection.cursor()
     
     for subject in subjects:
-        cursor.execute("INSERT INTO subjects (abbreviation, full_title) VALUES (%s, %s)", (subject["abbreviation"], subject["full_title"]))
+        cursor.execute("INSERT INTO scheduler_app_subject (abbreviation, title) VALUES (%s, %s)", (subject["abbreviation"], subject["title"]))
     
     connection.commit()
     
