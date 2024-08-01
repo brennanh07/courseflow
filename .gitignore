@@ -138,3 +138,5 @@ yarn-error.log*
 
 # Windows specific files
 Thumbs.db
+
+*.json

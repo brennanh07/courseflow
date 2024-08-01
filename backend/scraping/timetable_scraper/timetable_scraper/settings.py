@@ -11,12 +11,16 @@ import os
 import sys
 import django
 
-# Adjust the path to point to the root of project
-project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.append(project_root)
+# Adjust the path to point to the root of the project
+project_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
+sys.path.append(project_dir)
+
+# Ensure 'backend' is in the Python path
+backend_dir = os.path.join(project_dir, 'backend')
+sys.path.append(backend_dir)
 
 # Set Django settings module
-os.environ["DJANGO_SETTINGS_MODULE"] = "class_scheduler.settings"
+os.environ["DJANGO_SETTINGS_MODULE"] = "backend.class_scheduler.settings"
 
 django.setup()
 
@@ -26,12 +30,21 @@ BOT_NAME = "timetable_scraper"
 SPIDER_MODULES = ["timetable_scraper.spiders"]
 NEWSPIDER_MODULE = "timetable_scraper.spiders"
 
+FEEDS = {
+    'section_data.json': {
+        'format': 'json',
+        'overwrite': True,
+        'indent': 4,
+        'encoding': 'utf8',  
+    }
+}
+
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = "timetable_scraper (+http://www.yourdomain.com)"
 
 # Obey robots.txt rules
-ROBOTSTXT_OBEY = True
+ROBOTSTXT_OBEY = False
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
 #CONCURRENT_REQUESTS = 32
@@ -105,3 +118,5 @@ ROBOTSTXT_OBEY = True
 REQUEST_FINGERPRINTER_IMPLEMENTATION = "2.7"
 TWISTED_REACTOR = "twisted.internet.asyncioreactor.AsyncioSelectorReactor"
 FEED_EXPORT_ENCODING = "utf-8"
+
+LOG_LEVEL = "DEBUG"
