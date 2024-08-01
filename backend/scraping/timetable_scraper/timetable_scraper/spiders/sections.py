@@ -1,14 +1,5 @@
 import scrapy
 from scrapy.http import FormRequest
-import logging
-from scheduler_app.models import Section
-from django.utils.dateparse import parse_time
-# import os
-# import django
-# from django.utils.decorators import sync_to_async
-
-# os.environ["DJANGO_SETTINGS_MODULE"] = "backend.class_scheduler.settings"
-# django.setup()
 
 
 class SectionsSpider(scrapy.Spider):
@@ -72,71 +63,17 @@ class SectionsSpider(scrapy.Spider):
                     "Location": location,
                     "Exam_Code": exam_code
                 }
-                
-                # Section.objects.update_or_create(
-                #     crn=crn,
-                #     course=course,
-                #     title=title,
-                #     schedule_type=schedule_type,
-                #     modality=modality,
-                #     credit_hours=credit_hours,
-                #     capacity=capacity,
-                #     professor=professor,
-                #     location=location,
-                #     exam_code=exam_code
-                # )
-                
-        #         class_info = {
-        #             'CRN': crn,
-        #             'Course': course,
-        #             'Title': title,
-        #             'Schedule_Type': schedule_type,
-        #             'Modality': modality,
-        #             'Credit_Hours': credit_hours,
-        #             'Capacity': capacity,
-        #             'Instructor': instructor,
-        #             'Days': days,
-        #             'Begin_Time': begin_time,
-        #             'End_Time': end_time,
-        #             'Location': location,
-        #             'Exam_Code': exam_code
-        #         }
-        #         classes.append(class_info)
-                
-        # print(classes)
+    
+    
             # if "Online: Asynchronous" in class_type:
             #     days, begin_time, end_time, location = "Online", "Online", "Online", "Online"
             # elif days == "(ARR)":
             #     days, begin_time, end_time = "ARR", "ARR", "ARR"
                 
-            # self.print_section(
-            #     crn, course, title, class_type, modality, credit_hours, capacity, professor, days, begin_time, end_time, location, exam_code
-            # )
-            # self.print_section_time(crn, days, begin_time, end_time)
+
             
             
-    # def print_section(self, crn, course, title, class_type, modality, credit_hours, capacity, professor, location, exam_code):
-    #     print({
-    #         "CRN": crn,
-    #         "Course": course,
-    #         "Title": title,
-    #         "Class Type": class_type,
-    #         "Modality": modality,
-    #         "Credit Hours": credit_hours,
-    #         "Capacity": capacity,
-    #         "Professor": professor,
-    #         "Location": location,
-    #         "Exam Code": exam_code,
-    #     })
-        
-    
-    # def print_section_time(self, crn, days, begin_time, end_time):
-    #     print({
-    #         "CRN": crn,
-    #         "Days": days,
-    #         "Begin Time": begin_time,
-    #         "End Time": end_time,
-    #     })
+
         
         
 
