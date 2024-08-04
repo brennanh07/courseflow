@@ -54,7 +54,8 @@ class SectionsSpider(scrapy.Spider):
                     'crn': '',
                     'open_only': 'on',
                     'sess_code': '%',
-                    'BTN_PRESSED': 'FIND class sections'
+                    'BTN_PRESSED': 'FIND class sections',
+                    'disp_comments_in' : 'N'
                 },
                 callback=self.parse,
                 meta={"subject": subject}
@@ -63,10 +64,24 @@ class SectionsSpider(scrapy.Spider):
 
     def parse(self, response):
         rows = response.xpath("//table[@class='dataentrytable']/tr[position()>1]")
-        classes = []
         for row in rows:
             cells = row.xpath(".//td")
-            if len(cells) >= 13:
+            if len(cells) == 10:
+                crn = crn
+                days = days = cells[5].xpath(".//text()").get().strip()
+                begin_time = cells[6].xpath(".//text()").get().strip()
+                end_time = cells[7].xpath(".//text()").get().strip()
+                
+                section_time_data = {
+                    "CRN": crn,
+                    "Days": days,
+                    "Begin_Time": begin_time,
+                    "End_Time": end_time
+                }
+                
+                yield section_time_data
+                
+            elif len(cells) >= 13:
                 crn = int(cells[0].xpath(".//b/text()").get().strip())  # Extract CRN from <b> tag
                 course = cells[1].xpath(".//font/text()").get().strip()  # Extract Course from <font> tag
                 title = cells[2].xpath(".//text()").get().strip()
