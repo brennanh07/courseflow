@@ -81,7 +81,7 @@ class SectionsSpider(scrapy.Spider):
                 location = cells[11].xpath(".//text()").get().strip()
                 exam_code = cells[12].xpath(".//a/text()").get().strip()
                 
-                yield {
+                section_data = {
                     "CRN": crn,
                     "Course": course,
                     "Title": title,
@@ -93,3 +93,13 @@ class SectionsSpider(scrapy.Spider):
                     "Location": location,
                     "Exam_Code": exam_code
                 }     
+                
+                section_time_data = {
+                    "CRN": crn,
+                    "Days": days,
+                    "Begin_Time": begin_time,
+                    "End_Time": end_time
+                }
+                
+                yield section_data
+                yield section_time_data
