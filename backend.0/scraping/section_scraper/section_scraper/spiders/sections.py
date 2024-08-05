@@ -1,6 +1,5 @@
 import scrapy
 from scrapy.http import FormRequest
-import environ
 from scheduler.models import Subject
 import os
 import django
@@ -10,21 +9,6 @@ import asyncio
 # Setup Django settings
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'class_scheduler.settings')
 django.setup()
-
-# Load environment variables
-# env = environ.Env()
-# environ.Env.read_env()
-
-# subjects = Subject.objects.all()
-# for subject in subjects:
-#     print(subject.abbreviation)
-
-# connection = connect(
-#     host=env('DB_HOST'),
-#     user=env('DB_USER'),
-#     password=env('DB_PASSWORD'),
-#     database=env('DB_NAME')
-# )
 
 
 class SectionsSpider(scrapy.Spider):
