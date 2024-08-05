@@ -24,11 +24,13 @@ class Professor(models.Model):
 class Section(models.Model):
     crn = models.IntegerField(primary_key=True)
     course = models.CharField(max_length=100)
+    title = models.CharField(max_length=100, default="")
     class_type = models.CharField(max_length=100)
     modality = models.CharField(max_length=100)
     credit_hours = models.IntegerField()
     capacity = models.IntegerField()
-    professor = models.ForeignKey("Professor", on_delete=models.CASCADE)
+    # professor = models.ForeignKey("Professor", on_delete=models.CASCADE)
+    professor = models.CharField(max_length=100)
     location = models.CharField(max_length=100)
     exam_code = models.CharField(max_length=100)
     
