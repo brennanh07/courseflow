@@ -5,6 +5,12 @@ import os
 import django
 from asgiref.sync import sync_to_async
 import asyncio
+import MySQLdb
+import environ
+from datetime import datetime
+
+env = environ.Env()
+environ.Env.read_env()
 
 # Setup Django settings
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'class_scheduler.settings')
@@ -18,16 +24,33 @@ class SectionsSpider(scrapy.Spider):
     
     def __init__(self, *args, **kwargs):
         super(SectionsSpider, self).__init__(*args, **kwargs)
+        self.current_crn = None
+        self.conn = MySQLdb.connect(
+            host=env('DB_HOST'),
+            user=env('DB_USER'),
+            passwd=env('DB_PASSWORD'),
+            db=env('DB_NAME')
+        )
+        self.cursor = self.conn.cursor()
         self.sections_data = []
         self.section_times_data = []
     
+    
     def start_requests(self):
-        subjects = asyncio.run(self.get_subjects())
+        # Clear tables
+        self.cursor.execute("DELETE FROM scheduler_section")
+        self.cursor.execute("DELETE FROM scheduler_sectiontime")
+        self.conn.commit()
+        
+        subjects = self.get_subjects()
         return self.make_requests(subjects)
     
-    async def get_subjects(self):
-        subjects = await sync_to_async(list)(Subject.objects.values_list('abbreviation', flat=True))
+    
+    def get_subjects(self):
+        self.cursor.execute("SELECT abbreviation FROM scheduler_subject")
+        subjects = [row[0] for row in self.cursor.fetchall()]
         return subjects
+
         
     def make_requests(self, subjects):
         for subject in subjects:
@@ -55,115 +78,150 @@ class SectionsSpider(scrapy.Spider):
         rows = response.xpath("//table[@class='dataentrytable']/tr[position()>1]")
         for row in rows:
             cells = row.xpath(".//td")
-            if len(cells) == 10:
+            if len(cells) == 10 or len(cells) == 9:
                 self.parse_additional_time(cells)
             elif len(cells) == 12 and cells[4].xpath(".//text()").get().strip() == "Online: Asynchronous":
                 self.parse_online_asynchronous(cells)
             elif len(cells) == 13:
                 self.parse_regular(cells)
-            else:
+            elif len(cells) == 12:
                 self.parse_arranged(cells)
+            else:
+                continue
 
 
     def parse_additional_time(self, cells):
-        section_time_data = SectionTime(
-            crn = getattr(self, "current_crn", None),
-            days = cells[5].xpath(".//text()").get().strip(),
-            begin_time = cells[6].xpath(".//text()").get().strip(),
-            end_time = cells[7].xpath(".//text()").get().strip()
-        )    
+        
+        if len(cells) == 10:
+            section_time_data = (
+                self.current_crn, # crn
+                cells[5].xpath(".//text()").get().strip(), # days
+                self.convert_time(cells[6].xpath(".//text()").get().strip()), # begin time
+                self.convert_time(cells[7].xpath(".//text()").get().strip()) # end time
+            )
+        else:
+            section_time_data = (
+                self.current_crn, # crn
+                "ARR", # days
+                "00:00:00", # begin time
+                "00:00:00" # end time
+            )
         
         self.section_times_data.append(section_time_data)
 
 
     def parse_regular(self, cells):
-        self.current_crn = int(cells[0].xpath(".//b/text()").get().strip())  # Extract CRN from <b> tag
+        self.current_crn = int(cells[0].xpath(".//b/text()").get().strip())
         
-        section_data = Section(
-            crn = self.current_crn,
-            course = cells[1].xpath(".//font/text()").get().strip(), # Extract Course from <font> tag
-            title = cells[2].xpath(".//text()").get().strip(),
-            class_type = cells[3].xpath(".//text()").get().strip(),
-            modality = cells[4].xpath(".//text()").get().strip(),
-            credit_hours = int(cells[5].xpath(".//text()").get().strip()),
-            capacity = int(cells[6].xpath(".//text()").get().strip()),
-            professor = cells[7].xpath(".//text()").get().strip(),
-            location = cells[11].xpath(".//text()").get().strip(),
-            exam_code = cells[12].xpath(".//a/text()").get().strip()
-        )
-        
-        section_time_data = SectionTime(
-            crn = self.current_crn,
-            days = cells[8].xpath(".//text()").get().strip(),
-            begin_time = cells[9].xpath(".//text()").get().strip(),
-            end_time = cells[10].xpath(".//text()").get().strip()
+        section_data = (
+            self.current_crn,  # Extract CRN from <b> tag
+            cells[1].xpath(".//font/text()").get().strip(), # Extract Course from <font> tag
+            cells[2].xpath(".//text()").get().strip(), # title
+            cells[3].xpath(".//text()").get().strip(), # class type
+            cells[4].xpath(".//text()").get().strip(), # modality
+            cells[5].xpath(".//text()").get().strip(), # credit hours
+            cells[6].xpath(".//text()").get().strip(), # capacity
+            cells[7].xpath(".//text()").get().strip(), # professor
+            cells[11].xpath(".//text()").get().strip(), # location
+            cells[12].xpath(".//a/text()").get().strip() # exam code
         )
         
         self.sections_data.append(section_data)
+        
+        section_time_data = (
+            self.current_crn, # crn
+            cells[8].xpath(".//text()").get().strip(), # days
+            self.convert_time(cells[9].xpath(".//text()").get().strip()), # begin time
+            self.convert_time(cells[10].xpath(".//text()").get().strip()) # end time
+        )
+
         self.section_times_data.append(section_time_data)
+
                 
     def parse_online_asynchronous(self, cells):    
         self.current_crn = int(cells[0].xpath(".//b/text()").get().strip())
         
-        section_data = Section( 
-            crn = self.current_crn, 
-            course = cells[1].xpath(".//font/text()").get().strip(),  
-            title = cells[2].xpath(".//text()").get().strip(),
-            class_type = cells[3].xpath(".//text()").get().strip(),
-            modality = cells[4].xpath(".//text()").get().strip(),
-            credit_hours = int(cells[5].xpath(".//text()").get().strip()),
-            capacity = int(cells[6].xpath(".//text()").get().strip()),
-            professor = cells[7].xpath(".//text()").get().strip(),
-            location = cells[10].xpath(".//text()").get().strip(),
-            exam_code = cells[11].xpath(".//a/text()").get().strip()
-        )    
-        
-        section_time_data = SectionTime(
-            crn = self.current_crn,
-            days = "ONLINE",
-            begin_time = "ONLINE",
-            end_time = "ONLINE"
+        section_data = ( 
+            self.current_crn, 
+            cells[1].xpath(".//font/text()").get().strip(), # course
+            cells[2].xpath(".//text()").get().strip(), # title
+            cells[3].xpath(".//text()").get().strip(), # class type
+            cells[4].xpath(".//text()").get().strip(), # modality
+            cells[5].xpath(".//text()").get().strip(), # credit hours
+            cells[6].xpath(".//text()").get().strip(), # capacity
+            cells[7].xpath(".//text()").get().strip(), # professor
+            cells[10].xpath(".//text()").get().strip(), # location
+            cells[11].xpath(".//a/text()").get().strip() # exam code
         )
         
-        self.sections_data.append(section_data)
+        self.sections_data.append(section_data)   
+        
+        section_time_data = (
+            self.current_crn,
+            "ONLINE", # days
+            "00:00:00", # begin time
+            "00:00:00" # end time
+        )
+        
         self.section_times_data.append(section_time_data)
 
 
     def parse_arranged(self, cells):
         self.current_crn = int(cells[0].xpath(".//b/text()").get().strip())
-
-        section_data = Section(  
-            crn = self.current_crn,
-            course = cells[1].xpath(".//font/text()").get().strip(),  
-            title = cells[2].xpath(".//text()").get().strip(),
-            class_type = cells[3].xpath(".//text()").get().strip(),
-            modality = cells[4].xpath(".//text()").get().strip(),
-            credit_hours = int(cells[5].xpath(".//text()").get().strip()),
-            capacity = int(cells[6].xpath(".//text()").get().strip()),
-            professor = cells[7].xpath(".//text()").get().strip(),
-            location = cells[10].xpath(".//text()").get().strip(),
-            exam_code = cells[11].xpath(".//a/text()").get().strip()
+        
+        section_data = (  
+            self.current_crn,
+            cells[1].xpath(".//font/text()").get().strip(), # course  
+            cells[2].xpath(".//text()").get().strip(), # title
+            cells[3].xpath(".//text()").get().strip(), # class type
+            cells[4].xpath(".//text()").get().strip(), # modality
+            cells[5].xpath(".//text()").get().strip(), # credit hours
+            cells[6].xpath(".//text()").get().strip(), # capacity
+            cells[7].xpath(".//text()").get().strip(), # professor
+            cells[10].xpath(".//text()").get().strip(), # location
+            cells[11].xpath(".//a/text()").get().strip() # exam code
         )    
         
-        section_time_data = SectionTime(
-            crn = self.current_crn,
-            days = "ARR",
-            begin_time = "ARR",
-            end_time = "ARR"
+        self.sections_data.append(section_data)
+        
+        section_time_data = (
+            self.current_crn,
+            "ARR", # days
+            "00:00:00", # begin time
+            "00:00:00" # end time
         )
         
-        self.sections_data.append(section_data)
         self.section_times_data.append(section_time_data)
+
+        
+    def convert_time(self, time_str):
+        return datetime.strptime(time_str, "%I:%M%p").strftime("%H:%M:%S")
 
 
     def close(self, reason):
-        # Delete all existing data in section and section_time tables
-        Section.objects.all().delete()
-        SectionTime.objects.all().delete()
+        # print("Inserting into scheduler_section:")
+        # print("SQL:", "INSERT INTO scheduler_section (crn, course, title, class_type, modality, credit_hours, capacity, professor, location, exam_code) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)")
+        # print("Data:", self.sections_data)
         
-        # Bulk create new data
-        Section.objects.bulk_create(self.sections_data)
-        SectionTime.objects.bulk_create(self.section_times_data)
-
+        # print("Inserting into scheduler_sectiontime:")
+        # print("SQL:", "INSERT INTO scheduler_sectiontime (crn, days, begin_time, end_time) VALUES (%s, %s, %s, %s)")
+        # print("Data:", self.section_times_data)
+        
+        try:
+            self.cursor.executemany(
+                "INSERT INTO scheduler_section (crn, course, title, class_type, modality, credit_hours, capacity, professor, location, exam_code) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+                self.sections_data
+            )
+            self.cursor.executemany(
+                "INSERT INTO scheduler_sectiontime (crn_id, days, begin_time, end_time) VALUES (%s, %s, %s, %s)",
+                self.section_times_data
+            )
+            self.conn.commit()
+        except Exception as e:
+            print("An error occurred:", e)
+        
+        finally:
+            self.cursor.close()
+            self.conn.close()
 
 
