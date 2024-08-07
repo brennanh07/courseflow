@@ -1,10 +1,8 @@
 import scrapy
 from scrapy.http import FormRequest
-from scheduler.models import Subject, Section, SectionTime
 import os
 import django
 from asgiref.sync import sync_to_async
-import asyncio
 import MySQLdb
 import environ
 from datetime import datetime
@@ -38,8 +36,9 @@ class SectionsSpider(scrapy.Spider):
     
     def start_requests(self):
         # Clear tables
-        self.cursor.execute("DELETE FROM scheduler_section")
         self.cursor.execute("DELETE FROM scheduler_sectiontime")
+        self.cursor.execute("DELETE FROM scheduler_section")
+        self.cursor.execute("ALTER TABLE scheduler_sectiontime AUTO_INCREMENT = 1")
         self.conn.commit()
         
         subjects = self.get_subjects()
@@ -93,21 +92,16 @@ class SectionsSpider(scrapy.Spider):
     def parse_additional_time(self, cells):
         
         if len(cells) == 10:
-            section_time_data = (
-                self.current_crn, # crn
-                cells[5].xpath(".//text()").get().strip(), # days
-                self.convert_time(cells[6].xpath(".//text()").get().strip()), # begin time
-                self.convert_time(cells[7].xpath(".//text()").get().strip()) # end time
-            )
+            days_string = cells[5].xpath(".//text()").get().strip()
+            begin_time = self.convert_time(cells[6].xpath(".//text()").get().strip())
+            end_time = self.convert_time(cells[7].xpath(".//text()").get().strip())
+            
         else:
-            section_time_data = (
-                self.current_crn, # crn
-                "ARR", # days
-                "00:00:00", # begin time
-                "00:00:00" # end time
-            )
+            days_string = "ARR"
+            begin_time = "00:00:00"
+            end_time = "00:00:00"
         
-        self.section_times_data.append(section_time_data)
+        self.add_section_times(self.current_crn, days_string, begin_time, end_time)
 
 
     def parse_regular(self, cells):
@@ -128,14 +122,11 @@ class SectionsSpider(scrapy.Spider):
         
         self.sections_data.append(section_data)
         
-        section_time_data = (
-            self.current_crn, # crn
-            cells[8].xpath(".//text()").get().strip(), # days
-            self.convert_time(cells[9].xpath(".//text()").get().strip()), # begin time
-            self.convert_time(cells[10].xpath(".//text()").get().strip()) # end time
-        )
-
-        self.section_times_data.append(section_time_data)
+        days_string = cells[8].xpath(".//text()").get().strip()
+        begin_time = self.convert_time(cells[9].xpath(".//text()").get().strip())
+        end_time = self.convert_time(cells[10].xpath(".//text()").get().strip())
+        
+        self.add_section_times(self.current_crn, days_string, begin_time, end_time)
 
                 
     def parse_online_asynchronous(self, cells):    
@@ -154,16 +145,13 @@ class SectionsSpider(scrapy.Spider):
             cells[11].xpath(".//a/text()").get().strip() # exam code
         )
         
-        self.sections_data.append(section_data)   
+        self.sections_data.append(section_data)
         
-        section_time_data = (
-            self.current_crn,
-            "ONLINE", # days
-            "00:00:00", # begin time
-            "00:00:00" # end time
-        )
+        days_string = "ONLINE"
+        begin_time = "00:00:00"
+        end_time = "00:00:00"
         
-        self.section_times_data.append(section_time_data)
+        self.add_section_times(self.current_crn, days_string, begin_time, end_time)   
 
 
     def parse_arranged(self, cells):
@@ -184,14 +172,23 @@ class SectionsSpider(scrapy.Spider):
         
         self.sections_data.append(section_data)
         
-        section_time_data = (
-            self.current_crn,
-            "ARR", # days
-            "00:00:00", # begin time
-            "00:00:00" # end time
-        )
+        days_string = "ARR"
+        begin_time = "00:00:00"
+        end_time = "00:00:00"
         
-        self.section_times_data.append(section_time_data)
+        self.add_section_times(self.current_crn, days_string, begin_time, end_time)
+        
+        
+    def add_section_times(self, crn, days, begin_time, end_time):
+        days_split = days.split()
+        for day in days_split:
+            section_time_data = (
+                crn,
+                day,
+                begin_time,
+                end_time
+            )
+            self.section_times_data.append(section_time_data)
 
         
     def convert_time(self, time_str):
