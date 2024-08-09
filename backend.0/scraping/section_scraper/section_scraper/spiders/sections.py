@@ -2,7 +2,6 @@ import scrapy
 from scrapy.http import FormRequest
 import os
 import django
-from asgiref.sync import sync_to_async
 import MySQLdb
 import environ
 from datetime import datetime
