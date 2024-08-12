@@ -1,5 +1,6 @@
 import django
 import os
+import datetime
 
 # Setup Django settings
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'class_scheduler.settings')
@@ -47,7 +48,7 @@ def fetch_sections(courses):
     
     return section_dict, section_time_dict
 
-def check_conflict(section_times):
+def check_conflict(section_times, breaks):
     """
     Check if any two SectionTime objects conflict within a list of SectionTime objects.
     
@@ -57,20 +58,29 @@ def check_conflict(section_times):
     Returns:
         bool: True if any conflict exists, False otherwise.
     """
-    for i in range(len(section_times)):
-        for j in range(i + 1, len(section_times)):
+    # Check if any two SectionTime objects conflict
+    for i in range(len(section_times)): # Loop through all section times 
+        for j in range(i + 1, len(section_times)): # Loop through all section times after the current one
             time1 = section_times[i]
             time2 = section_times[j]
             
             # Check if they overlap on the same day
-            if set(time1.days).intersection(set(time2.days)):
-                if time1.end_time > time2.begin_time and time1.begin_time < time2.end_time:
+            if set(time1.days).intersection(set(time2.days)): # If the two section times have any overlapping days
+                if time1.end_time > time2.begin_time and time1.begin_time < time2.end_time: # If the two section times overlap in time
                     # print(f"Conflict found between {time1} and {time2}")
                     return True
+                
+        # Check for conflicts with the specified breaks
+        for section_time in section_times:
+            for break_time in breaks:
+                if (section_time.begin_time >= break_time['begin_time'] and # If the section time starts after the break starts
+                    section_time.begin_time <= break_time['end_time']): # If the section time starts before the break ends
+                    return True
+        
     return False
 
 
-def is_valid_combination(section_times):
+def is_valid_combination(section_times, breaks):
     """
     Determine if a combination of SectionTime objects has no conflicts.
     
@@ -83,12 +93,12 @@ def is_valid_combination(section_times):
     # print(f"Checking validity of combination: {section_times}")
     
     # Use the updated check_conflict function
-    if check_conflict(section_times):
+    if check_conflict(section_times, breaks):
         return False
     
     return True
 
-def generate_valid_schedules(section_dict, section_time_dict, current_combination=[], valid_schedules=[], selected_courses=set()):
+def generate_valid_schedules(section_dict, section_time_dict, current_combination=[], valid_schedules=[], selected_courses=set(), breaks=[]):
     """
     Recursively generate all valid schedules by checking for conflicts as the schedules are built.
     Ensure that each schedule contains all SectionTime objects for each section across all days.
@@ -102,7 +112,7 @@ def generate_valid_schedules(section_dict, section_time_dict, current_combinatio
     """
     # Base case: If all courses have been processed, check if the current combination is valid
     if len(selected_courses) == len(set(section.course for section in section_dict.values())):
-        if is_valid_combination(current_combination):
+        if is_valid_combination(current_combination, breaks):
             # print(f"Valid schedule found: {current_combination}")
             valid_schedules.append(current_combination)
         return
@@ -131,11 +141,12 @@ def generate_valid_schedules(section_dict, section_time_dict, current_combinatio
                 section_time_dict,
                 new_combination,
                 valid_schedules,
-                selected_courses | {section.course}
+                selected_courses | {section.course}, 
+                breaks
             )
 
 
-def get_valid_schedules(courses):
+def get_valid_schedules(courses, breaks=[]):
     """
     Main function to generate all valid schedules for the given list of courses.
     
@@ -154,7 +165,7 @@ def get_valid_schedules(courses):
     valid_schedules = []
     
     # Generate all valid schedules
-    generate_valid_schedules(section_dict, section_time_dict, valid_schedules=valid_schedules)
+    generate_valid_schedules(section_dict, section_time_dict, valid_schedules=valid_schedules, breaks=breaks)
     
     print(f"Total valid schedules: {len(valid_schedules)}")
     
@@ -162,7 +173,15 @@ def get_valid_schedules(courses):
     
     return valid_schedules
 
-# Test the function with debugging
+
+# Example usage
 courses = ["CS-1114", "MATH-1226", "CS-1014"]
-valid_schedules = get_valid_schedules(courses)
+
+# Define breaks as a list of dictionaries with 'begin_time' and 'end_time' keys
+breaks = [
+    {'begin_time': datetime.time(8, 0), 'end_time': datetime.time(9, 0)},
+    # {'begin_time': '18:00:00', 'end_time': '19:00:00'}
+]
+
+valid_schedules = get_valid_schedules(courses, breaks)
 print(valid_schedules)
