@@ -1,6 +1,13 @@
 import datetime
 from schedule_generator import get_valid_schedules
 from collections import defaultdict
+import heapq
+import logging
+from itertools import groupby
+from operator import attrgetter
+
+# Setup logging
+logging.basicConfig(level=logging.INFO)
 
 
 def group_section_times_by_section(section_times):
@@ -13,16 +20,49 @@ def group_section_times_by_section(section_times):
     Returns:
         dict: Dictionary where keys are Section objects and values are lists of SectionTime objects
     """
-    grouped_sections = defaultdict(list) # Initialize an empty dictionary with default value as an empty list
+    section_times.sort(key=attrgetter('crn')) # Sort SectionTime objects by CRN
     
-    for section_time in section_times:
-        section = section_time.crn
-        grouped_sections[section].append(section_time)
-        
-    print(f"Grouped sections: {grouped_sections}")
-        
+    grouped_sections = {section: list(times) for section, times in groupby(section_times, key=attrgetter('crn'))}
+    
+    logging.debug(f"Grouped sections: {grouped_sections}")
+    
     return grouped_sections
 
+
+def time_score(begin_time, preferred_time):
+    """
+    Calculate a time score based on the proximity to the preferred time.
+    
+    Args:
+        begin_time (datetime.time): Start time of the class
+        preferences (dict): User preferences, including preferred time of day
+        
+    Returns:
+        float: Score between 0 and 1, where 1 is a perfect match and 0 is no match
+    """
+    # Convert preferred time of day for classes to a range of times
+    if preferred_time == 'morning':
+        preferred_start, preferred_end = datetime.time(8, 0), datetime.time(12, 0)  # 8:00 AM to 12:00 PM
+    elif preferred_time == 'afternoon':
+        preferred_start, preferred_end = datetime.time(12, 0), datetime.time(16, 0)  # 12:00 PM to 4:00 PM
+    elif preferred_time == 'evening':
+        preferred_start, preferred_end = datetime.time(16, 0), datetime.time(20, 0)  # 4:00 PM to 8:00 PM
+    else:
+        return None
+    
+    # Calculate the score based on the proximity to the preferred time
+    if begin_time < preferred_start:
+        # Calculate how far the class start time is before the preferred start time
+        score = max(0, 1 - (preferred_start - begin_time).seconds / 3600)
+    elif preferred_start <= begin_time <= preferred_end:
+        # Perfect match if the class start time is within the preferred range
+        score = 1
+    else:
+        # Calculate how far the class start time is after the preferred end time
+        score = max(0, 1 - (begin_time - preferred_end).seconds / 3600)
+        
+    return score
+    
 
 def score_section_time(section_time, preferences):
     """
@@ -46,16 +86,11 @@ def score_section_time(section_time, preferences):
         matching_days = set(section_time.days).intersection(set(preferences['preferred_days']))
         day_score = len(matching_days) / len(section_time.days)
         
-        # Time score based on preferred time of day
-        time_score = 0
-        if preferences['preferred_time'] == 'morning' and section_time.begin_time < datetime.time(12, 0):
-            time_score = 1
-        elif preferences['preferred_time'] == 'afternoon' and datetime.time(12, 0) <= section_time.begin_time < datetime.time(16, 0):
-            time_score = 1
-        elif preferences['preferred_time'] == 'evening' and section_time.begin_time >= datetime.time(16, 0):
-            time_score = 1
+        # Time score based on proximity to preferred time of day
+        time_score = time_score(section_time.begin_time, preferences['preferred_time'])
+        
     
-    # Apply weight
+    # Apply weights
     weighted_day_score = day_score * preferences['day_weight']
     weighted_time_score = time_score * preferences['time_weight']
     
@@ -63,11 +98,10 @@ def score_section_time(section_time, preferences):
     section_time_score = weighted_day_score + weighted_time_score
     
     # Debugging output
-    print(f"Scoring SectionTime: {section_time}")
-    print(f"Matching Days: {matching_days}")
-    print(f"Day Score: {day_score}, Time Score: {time_score}")
-    print(f"Weighted Day Score: {weighted_day_score}, Weighted Time Score: {weighted_time_score}")
-    print(f"Total SectionTime Score: {section_time_score}")
+    logging.debug(f"Scoring SectionTime: {section_time}")
+    logging.debug(f"Matching Days: {matching_days}")
+    logging.debug(f"Day Score: {day_score}, Time Score: {time_score}")
+    logging.debug(f"Total SectionTime Score: {section_time_score}")
     
     return section_time_score
 
@@ -91,8 +125,8 @@ def score_section(section, section_times, preferences):
     average_score = total_score / len(section_times) if section_times else 0
     
     # Debugging output
-    print(f"Scoring Section: {section}")
-    print(f"Total Section Score: {total_score}, Average Section Score: {average_score}")
+    logging.debug(f"Scoring Section: {section}")
+    logging.debug(f"Total Section Score: {total_score}, Average Section Score: {average_score}")
 
     # Return the average score
     return average_score
@@ -111,14 +145,18 @@ def score_schedule(schedule, preferences):
     """
     grouped_sections = group_section_times_by_section(schedule) # Group SectionTime objects by Section objects
     
-    total_schedule_score = sum(score_section(section, section_times, preferences) for section, section_times in grouped_sections.items())
+    total_schedule_score = sum(
+        score_section(section, section_times, preferences) 
+        for section, section_times in grouped_sections.items()
+    )
     
     # Debugging output
-    print(f"Scoring Schedule: {schedule}")
-    print(f"Total Schedule Score: {total_schedule_score}")
+    logging.debug(f"Scoring Schedule: {schedule}")
+    logging.debug(f"Total Schedule Score: {total_schedule_score}")
     
     # Return the total score of the schedule
     return total_schedule_score
+
 
 def rank_schedules(schedules, preferences):
     """
