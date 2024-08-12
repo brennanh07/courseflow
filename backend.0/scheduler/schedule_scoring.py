@@ -20,7 +20,7 @@ def group_section_times_by_section(section_times):
     Returns:
         dict: Dictionary where keys are Section objects and values are lists of SectionTime objects
     """
-    section_times.sort(key=attrgetter('crn')) # Sort SectionTime objects by CRN
+    # section_times.sort(key=attrgetter('crn')) # Sort SectionTime objects by CRN
     
     grouped_sections = {section: list(times) for section, times in groupby(section_times, key=attrgetter('crn'))}
     
@@ -29,7 +29,7 @@ def group_section_times_by_section(section_times):
     return grouped_sections
 
 
-def time_score(begin_time, preferred_time):
+def score_time(begin_time, preferred_time):
     """
     Calculate a time score based on the proximity to the preferred time.
     
@@ -50,16 +50,22 @@ def time_score(begin_time, preferred_time):
     else:
         return None
     
+    # Convert times to datetime on an arbitrary date for comparison
+    arbitrary_date = datetime.date(1, 1, 1)
+    begin_dt = datetime.datetime.combine(arbitrary_date, begin_time)
+    preferred_start_dt = datetime.datetime.combine(arbitrary_date, preferred_start)
+    preferred_end_dt = datetime.datetime.combine(arbitrary_date, preferred_end)
+    
     # Calculate the score based on the proximity to the preferred time
-    if begin_time < preferred_start:
+    if begin_dt < preferred_start_dt:
         # Calculate how far the class start time is before the preferred start time
-        score = max(0, 1 - (preferred_start - begin_time).seconds / 3600)
-    elif preferred_start <= begin_time <= preferred_end:
+        score = max(0, 1 - (preferred_start_dt - begin_dt).seconds / 3600)
+    elif preferred_start_dt <= begin_dt <= preferred_end_dt:
         # Perfect match if the class start time is within the preferred range
         score = 1
     else:
         # Calculate how far the class start time is after the preferred end time
-        score = max(0, 1 - (begin_time - preferred_end).seconds / 3600)
+        score = max(0, 1 - (begin_dt - preferred_end_dt).seconds / 3600)
         
     return score
     
@@ -87,7 +93,7 @@ def score_section_time(section_time, preferences):
         day_score = len(matching_days) / len(section_time.days)
         
         # Time score based on proximity to preferred time of day
-        time_score = time_score(section_time.begin_time, preferences['preferred_time'])
+        time_score = score_time(section_time.begin_time, preferences['preferred_time'])
         
     
     # Apply weights
@@ -158,26 +164,27 @@ def score_schedule(schedule, preferences):
     return total_schedule_score
 
 
-def rank_schedules(schedules, preferences):
+def rank_schedules(schedules, preferences, top_n=5):
     """
     Rank all valid schedules based on their scores.
     
     Args:
         schedules (list): List of valid schedules, where each schedule is a list of Section objects
         preferences (dict): User preferences for day, time of day, and weights
+        top_n (int): Number of top schedules to return
         
     Returns:
         list: A list of schedules sorted by their scores in descending order
     """
     # Score each schedule
-    scored_schedules = [(schedule, score_schedule(schedule, preferences)) for schedule in schedules]
-    scored_schedules.sort(key=lambda x: x[1], reverse=True)
+    scored_schedules = [(schedule, score_schedule(schedule, preferences)) for schedule in schedules] # List of (schedule, score) tuples
+    top_schedules = heapq.nlargest(top_n, scored_schedules, key=lambda x: x[1]) # Get the top N schedules by score, using a heap
     
     # Debugging output
-    for i, (schedule, score) in enumerate(scored_schedules):
-        print(f"Schedule {i} Score: {score}")
+    for i, (schedule, score) in enumerate(top_schedules):
+        logging.debug(f"Top Schedule {i} Score: {score}")
     
-    return [schedule for schedule, score in scored_schedules]
+    return [schedule for schedule, score in top_schedules]
 
 
 def format_schedule(schedule):
@@ -206,30 +213,30 @@ def print_ranked_schedules(ranked_schedules, top_n=5):
         ranked_schedules (list): List of ranked schedules to print.
     """
     for i, schedule in enumerate(ranked_schedules, 1):
-        print(f"Schedule {i}:")
+        logging.info(f"Schedule {i}:")
         print(format_schedule(schedule))
-        print("\n" + "="*40 + "\n")
+        print("\n" + "=" * 40 + "\n")
         
     # Print the top N schedules again
-    print(f"\nTop {top_n} Schedules:\n" + "="*40)
+    logging.info(f"\nTop {top_n} Schedules:\n" + "=" * 40)
     for i, schedule in enumerate(ranked_schedules[:top_n], 1):
-        print(f"Top {i} Schedule:")
+        logging.info(f"Top {i} Schedule:")
         print(format_schedule(schedule))
-        print("\n" + "="*40 + "\n")
+        print("\n" + "=" * 40 + "\n")
 
 
 # Example usage
 preferences = {
     'preferred_days': ['M', 'T', 'W', 'R'],
     'preferred_time': 'morning',
-    'day_weight': 1.0,
-    'time_weight': 0.5
+    'day_weight': 0.0,
+    'time_weight': 1.0
 }
 
 courses = ["CS-1114", "MATH-1226", "CS-1014", "ENGE-1216", "ACIS-1504"]
 
 breaks = [
-    {'begin_time': datetime.time(8, 0), 'end_time': datetime.time(9, 0)},
+    # {'begin_time': datetime.time(8, 0), 'end_time': datetime.time(9, 0)},
     # {'begin_time': '18:00:00', 'end_time': '19:00:00'}
 ]
 
