@@ -62,7 +62,7 @@ class SectionsSpider(scrapy.Spider):
                     'SCHDTYPE': '%',
                     'CRSE_NUMBER': '',
                     'crn': '',
-                    'open_only': 'on',
+                    'open_only': '',
                     'sess_code': '%',
                     'BTN_PRESSED': 'FIND class sections',
                     'disp_comments_in' : 'N'

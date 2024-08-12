@@ -183,14 +183,19 @@ def print_ranked_schedules(ranked_schedules, top_n=5):
 # Example usage
 preferences = {
     'preferred_days': ['M', 'T', 'W', 'R'],
-    'preferred_time': 'evening',
-    'day_weight': 0.0,
-    'time_weight': 1.0
+    'preferred_time': 'morning',
+    'day_weight': 1.0,
+    'time_weight': 0.5
 }
 
 courses = ["CS-1114", "MATH-1226", "CS-1014", "ENGE-1216", "ACIS-1504"]
 
-valid_schedules = get_valid_schedules(courses)
+breaks = [
+    {'begin_time': datetime.time(8, 0), 'end_time': datetime.time(9, 0)},
+    # {'begin_time': '18:00:00', 'end_time': '19:00:00'}
+]
+
+valid_schedules = get_valid_schedules(courses, breaks)
 
 ranked_schedules = rank_schedules(valid_schedules, preferences)
 
