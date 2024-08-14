@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'scheduler.apps.SchedulerConfig',
     'scraping.apps.ScrapingConfig',
+    'rest_framework',
 ]
 
 MIDDLEWARE = [
@@ -131,3 +132,16 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated', # Default permission class for all views
+    ],
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication', # JWT authentication for API
+        'rest_framework.authentication.SessionAuthentication', # Session authentication for browsable API
+        'rest_framework.authentication.BasicAuthentication' # Basic authentication for browsable API
+    ],
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination', # Default pagination class for all views
+    'PAGE_SIZE': 10 # Default page size for pagination
+}

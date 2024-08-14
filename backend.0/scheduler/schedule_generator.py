@@ -175,13 +175,13 @@ def get_valid_schedules(courses, breaks=[]):
 
 
 # Example usage
-courses = ["CS-1114", "MATH-1226", "CS-1014"]
+# courses = ["CS-1114", "MATH-1226", "CS-1014"]
 
-# Define breaks as a list of dictionaries with 'begin_time' and 'end_time' keys
-breaks = [
-    {'begin_time': datetime.time(8, 0), 'end_time': datetime.time(9, 0)},
-    # {'begin_time': '18:00:00', 'end_time': '19:00:00'}
-]
+# # Define breaks as a list of dictionaries with 'begin_time' and 'end_time' keys
+# breaks = [
+#     {'begin_time': datetime.time(8, 0), 'end_time': datetime.time(9, 0)},
+#     # {'begin_time': '18:00:00', 'end_time': '19:00:00'}
+# ]
 
-valid_schedules = get_valid_schedules(courses, breaks)
-print(valid_schedules)
+# valid_schedules = get_valid_schedules(courses, breaks)
+# print(valid_schedules)

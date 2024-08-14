@@ -229,8 +229,8 @@ def print_ranked_schedules(ranked_schedules, top_n=5):
 preferences = {
     'preferred_days': ['M', 'T', 'W', 'R'],
     'preferred_time': 'morning',
-    'day_weight': 0.0,
-    'time_weight': 1.0
+    'day_weight': 1.0,
+    'time_weight': 0.0
 }
 
 courses = ["CS-1114", "MATH-1226", "CS-1014", "ENGE-1216", "ACIS-1504"]
