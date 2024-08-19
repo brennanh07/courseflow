@@ -60,7 +60,7 @@ export default function PreferencesInputSection({
               type="checkbox"
               checked={preferences.days.includes(day)}
               onChange={(e) => handleDayChange(day, e.target.checked)}
-              className="mr-2"
+              className="checkbox"
             />
             {day}
           </label>
@@ -87,6 +87,7 @@ export default function PreferencesInputSection({
             max="1"
             step="0.05"
             onChange={(e) => handleDayWeightChange(parseFloat(e.target.value))}
+            className="input input-bordered w-full max-w-xs"
           />
         </div>
         <div>
@@ -98,7 +99,7 @@ export default function PreferencesInputSection({
             max="1"
             step="0.05"
             onChange={(e) => handleTimeWeightChange(parseFloat(e.target.value))}
-            className="input"
+            className="input input-bordered w-full max-w-xs"
           />
         </div>
       </div>

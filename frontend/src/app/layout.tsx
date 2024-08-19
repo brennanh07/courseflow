@@ -1,5 +1,6 @@
 import React from "react";
 import { Metadata } from "next";
+import "./globals.css";
 
 export const metadata: Metadata = {
   title: {
@@ -16,7 +17,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html data-theme="light" lang="en">
       <body>
         <header
           style={{

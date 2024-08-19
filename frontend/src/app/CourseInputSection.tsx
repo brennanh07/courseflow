@@ -1,4 +1,5 @@
 import React from "react";
+// import './globals.css';
 
 interface Course {
   subject: string;
@@ -37,17 +38,17 @@ export default function CourseInputSection({
 
   return (
     <div>
-      <h1>Courses</h1>
-      <h4>Enter the subject and course number for each class you are taking</h4>
-      <h5>Example: MATH-1225</h5>
-      <h4>
+      <h1 className="font-main text-5xl text-center">Courses</h1>
+      <h4 className="font-main text-center">Enter the subject and course number for each class you are taking</h4>
+      <h5 className="font-main text-center">Example: MATH-1225</h5>
+      <h4 className="font-main text-center">
         If a course has both a lecture and lab, please specify by adding the
         corresponding letter to the end of the course number (L = Lecture, B =
         Lab)
       </h4>
-      <h5>Example: PHYS-2305L | PHYS-2305B</h5>
+      <h5 className="font-main text-center">Example: PHYS-2305L | PHYS-2305B</h5>
       {courses.map((course, index) => (
-        <div key={index}>
+        <div className="text-center" key={index}>
           <input
             type="text"
             placeholder="Subject"
@@ -55,9 +56,9 @@ export default function CourseInputSection({
             onChange={(e) =>
               handleCourseChange(index, "subject", e.target.value)
             }
-            className="input"
+            className="input input-bordered max-w-xs text-center my-1.5"
           />
-          <span className="mx-2">-</span>
+          <span className = "mx-4 text-3xl">-</span>
           <input
             type="text"
             placeholder="Course Number"
@@ -65,14 +66,22 @@ export default function CourseInputSection({
             onChange={(e) =>
               handleCourseChange(index, "courseNumber", e.target.value)
             }
-            className="input"
+            className="input input-bordered max-w-xs text-center"
           />
           {courses.length > 1 && index > 0 && (
-            <button onClick={() => removeCourse(index)}>Remove</button>
+            <button className="font-main btn mx-2" onClick={() => removeCourse(index)}>
+              Remove
+            </button>
           )}
         </div>
       ))}
-      {courses.length < 8 && <button onClick={addCourse}>Add Course</button>}
+      {courses.length < 8 && (
+        <div className="flex justify-center">
+          <button className="font-main btn my-1.5" onClick={addCourse}>
+            Add Course
+          </button>
+        </div>
+      )}
     </div>
   );
 }

@@ -66,9 +66,9 @@ export default function Home() {
         )}
 
         {step < 4 && (
-          <div>
-            {step > 1 && <button onClick={handlePrevious}>Previous</button>}
-            <button onClick={handleNext}>
+          <div className="text-right">
+            {step > 1 && <button className="btn mx-2" onClick={handlePrevious}>Previous</button>}
+            <button className="btn mr-2" onClick={handleNext}>
               {step === 3 ? "Generate Schedules" : "Next"}
             </button>
           </div>

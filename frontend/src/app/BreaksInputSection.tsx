@@ -40,7 +40,7 @@ export default function BreaksInputSection({
       <h2>Enter Your Breaks</h2>
       {breaks.map((breakPeriod, index) => (
         <div key={index}>
-          <select
+          <select className="dropdown"
             value={breakPeriod.startTime}
             onChange={(e) =>
               handleBreakChange(index, "startTime", e.target.value)
