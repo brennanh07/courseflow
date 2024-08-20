@@ -69,7 +69,7 @@ export default function Home() {
       {step < 4 && (
         <div className="flex justify-end m-5 space-x-3">
           {step > 1 && (
-            <button className="btn" onClick={handlePrevious}>
+            <button className="btn btn-primary text-white font-main" onClick={handlePrevious}>
               Previous
             </button>
           )}
