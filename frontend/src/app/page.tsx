@@ -51,7 +51,7 @@ export default function Home() {
 
   return (
     <div>
-      <main>
+      <div className="flex justify-center">
         {step === 1 && (
           <CourseInputSection courses={courses} setCourses={setCourses} />
         )}
@@ -64,18 +64,22 @@ export default function Home() {
             setPreferences={setPreferences}
           />
         )}
+      </div>
 
-        {step < 4 && (
-          <div className="text-right">
-            {step > 1 && <button className="btn mx-2" onClick={handlePrevious}>Previous</button>}
-            <button className="btn mr-2" onClick={handleNext}>
-              {step === 3 ? "Generate Schedules" : "Next"}
+      {step < 4 && (
+        <div className="flex justify-end m-5 space-x-3">
+          {step > 1 && (
+            <button className="btn" onClick={handlePrevious}>
+              Previous
             </button>
-          </div>
-        )}
+          )}
+          <button className="btn btn-secondary text-white" onClick={handleNext}>
+            {step === 3 ? "Generate Schedules" : "Next"}
+          </button>
+        </div>
+      )}
 
-        {step === 4 && <div>{/* Display schedules */}</div>}
-      </main>
+      {step === 4 && <div>{/* Display schedules */}</div>}
     </div>
   );
 }

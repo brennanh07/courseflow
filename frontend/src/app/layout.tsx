@@ -17,26 +17,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html data-theme="light" lang="en">
-      <body>
-        <header
-          style={{
-            color: "white",
-            backgroundColor: "maroon",
-            padding: "1rem",
-          }}
-        >
-          Header
+    <html data-theme="mytheme" lang="en">
+      <body className="font-main text-">
+        <header className="bg-primary text-white font-main h-12 flex justify-left items-center pl-3">
+          Class Schedule Generator
         </header>
         {children}
-        <footer
-          style={{
-            color: "white",
-            backgroundColor: "darkorange",
-            padding: "1rem",
-          }}
-        >
-          Footer
+        <footer className="bg-secondary text-white font-main h-12 flex justify-left items-center pl-3">
+          Created by Brennan Humphrey
         </footer>
       </body>
     </html>

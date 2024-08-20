@@ -19,7 +19,28 @@ const config: Config = {
     require('daisyui')
   ],
   daisyui: {
-    themes: ["light", "dark"]
+    themes: ["light", "dark", {
+      mytheme: {
+        
+"primary": "#991b1b",
+        
+"secondary": "#f97316",
+        
+"accent": "#f3f4f6",
+        
+"neutral": "#f3f4f6",
+        
+"base-100": "#f3f4f6",
+        
+"info": "#f3f4f6",
+        
+"success": "#f3f4f6",
+        
+"warning": "#111827",
+        
+"error": "#111827",
+        },
+      },]
   },
   
 };
