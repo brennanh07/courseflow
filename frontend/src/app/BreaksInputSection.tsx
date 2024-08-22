@@ -36,49 +36,72 @@ export default function BreaksInputSection({
   };
 
   return (
-    <div>
-      <h2>Enter Your Breaks</h2>
-      {breaks.map((breakPeriod, index) => (
-        <div key={index}>
-          <select className="dropdown"
-            value={breakPeriod.startTime}
-            onChange={(e) =>
-              handleBreakChange(index, "startTime", e.target.value)
-            }
-          >
-            <option value="">Start Time</option>
-            {generateTimeOptions().map((time) => (
-              <option key={time} value={time}>
-                {time}
-              </option>
-            ))}
-          </select>
-          <span className="mr-2">to</span>
-          <select
-            value={breakPeriod.endTime}
-            onChange={(e) =>
-              handleBreakChange(index, "endTime", e.target.value)
-            }
-          >
-            <option value="">End Time</option>
-            {generateTimeOptions().map((time) => (
-              <option key={time} value={time}>
-                {time}
-              </option>
-            ))}
-          </select>
-            {breaks.length > 1 && index > 0 && (
-                <button onClick={() => removeBreak(index)} className="btn">
-                    Remove
-                </button>
+    <div className="flex justify-center items-center flex-col gap-y-2 my-2">
+      <h1 className="font-main text-6xl">Breaks</h1>
+      <h4 className="font-main text-xl">
+        Set the start and end times for breaks during the day when you don&apos;t
+        want classes
+      </h4>
+      <h4 className="font-main text-xl">
+        If you don&apos;t want any breaks, leave the default break times
+      </h4>
+      <div className="border bg-red-800 rounded-xl w-fit object-center flex flex-col p-3.5 gap-y-2.5 my-4">
+        {breaks.map((breakPeriod, index) => (
+          <div className="flex justify-center items-center" key={index}>
+            <select
+              className="btn bg-accent font-main text-center border-none focus:outline-none focus:ring-2 focus:ring-white hover:bg-secondary hover:text-white focus:bg-secondary focus:text-white"
+              value={breakPeriod.startTime}
+              onChange={(e) =>
+                handleBreakChange(index, "startTime", e.target.value)
+              }
+            >
+              <option className="font-main bg-accent text-black" value="">Start Time</option>
+              {generateTimeOptions().map((time) => (
+                <option className="font-main bg-accent text-black" key={time} value={time}>
+                  {time}
+                </option>
+              ))}
+            </select>
+            <span className="mx-4 text-white">to</span>
+            <select
+              className="btn bg-accent font-main text-center border-none focus:outline-none focus:ring-2 focus:ring-white hover:bg-secondary hover:text-white focus:bg-secondary focus:text-white"
+              value={breakPeriod.endTime}
+              onChange={(e) =>
+                handleBreakChange(index, "endTime", e.target.value)
+              }
+            >
+              <option className="font-main bg-accent text-black" value="">End Time</option>
+              {generateTimeOptions().map((time) => (
+                <option className="font-main bg-accent text-black" key={time} value={time}>
+                  {time}
+                </option>
+              ))}
+            </select>
+            {breaks.length > 1 && index > 0 ? (
+              <button
+                onClick={() => removeBreak(index)}
+                className="font-main btn bg-accent text-xl ml-2 text-center border-none hover:bg-secondary hover:text-white"
+              >
+                -
+              </button>
+            ) : (
+              <div className="ml-2" style={{ visibility: "hidden" }}>
+                <button className="font-main btn">-</button>
+              </div>
             )}
-        </div>
-      ))}
-      {breaks.length < 8 && (
-        <button onClick={addBreak} className="btn">
-          Add Break
-        </button>
-      )}
+          </div>
+        ))}
+        {breaks.length < 8 && (
+          <div className="flex justify-center">
+            <button
+              onClick={addBreak}
+              className="font-main bg-accent btn mr-10 text-lg text-center border-none hover:bg-secondary hover:text-white"
+            >
+              +
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
