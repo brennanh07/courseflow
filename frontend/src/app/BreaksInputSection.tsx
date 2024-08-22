@@ -39,8 +39,8 @@ export default function BreaksInputSection({
     <div className="flex justify-center items-center flex-col gap-y-2 my-2">
       <h1 className="font-main text-6xl">Breaks</h1>
       <h4 className="font-main text-xl">
-        Set the start and end times for breaks during the day when you don&apos;t
-        want classes
+        Set the start and end times for breaks during the day when you
+        don&apos;t want classes
       </h4>
       <h4 className="font-main text-xl">
         If you don&apos;t want any breaks, leave the default break times
@@ -55,9 +55,15 @@ export default function BreaksInputSection({
                 handleBreakChange(index, "startTime", e.target.value)
               }
             >
-              <option className="font-main bg-accent text-black" value="">Start Time</option>
+              <option className="font-main bg-accent text-black" value="">
+                Start Time
+              </option>
               {generateTimeOptions().map((time) => (
-                <option className="font-main bg-accent text-black" key={time} value={time}>
+                <option
+                  className="font-main bg-accent text-black"
+                  key={time}
+                  value={time}
+                >
                   {time}
                 </option>
               ))}
@@ -70,9 +76,15 @@ export default function BreaksInputSection({
                 handleBreakChange(index, "endTime", e.target.value)
               }
             >
-              <option className="font-main bg-accent text-black" value="">End Time</option>
+              <option className="font-main bg-accent text-black" value="">
+                End Time
+              </option>
               {generateTimeOptions().map((time) => (
-                <option className="font-main bg-accent text-black" key={time} value={time}>
+                <option
+                  className="font-main bg-accent text-black"
+                  key={time}
+                  value={time}
+                >
                   {time}
                 </option>
               ))}
