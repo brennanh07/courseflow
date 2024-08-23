@@ -37,7 +37,7 @@ export default function CourseInputSection({
   };
 
   return (
-    <div className="flex justify-center items-center flex-col gap-y-2 my-2">
+    <div className="flex justify-center items-center flex-col gap-y-2 my-4">
       <h1 className="font-main text-6xl">Courses</h1>
       <h4 className="font-main text-xl">
         Enter the subject and course number for each class you are taking
@@ -89,7 +89,7 @@ export default function CourseInputSection({
         {courses.length < 8 && (
           <div className="flex justify-center">
             <button
-              className="font-main bg-accent btn mr-10 text-lg text-center border-none hover:bg-secondary hover:text-white"
+              className="font-main bg-accent btn mr-12 text-lg text-center border-none hover:bg-secondary hover:text-white"
               onClick={addCourse}
             >
               +

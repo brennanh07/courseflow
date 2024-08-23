@@ -37,8 +37,8 @@ export default function Home() {
   const [preferences, setPreferences] = useState<Preferences>({
     days: [],
     timesOfDay: "",
-    dayWeight: 0,
-    timeWeight: 0,
+    dayWeight: 0.5,
+    timeWeight: 0.5,
   });
 
   const handleNext = () => {
@@ -69,7 +69,10 @@ export default function Home() {
       {step < 4 && (
         <div className="flex justify-end m-5 space-x-3">
           {step > 1 && (
-            <button className="btn btn-primary text-white font-main" onClick={handlePrevious}>
+            <button
+              className="btn btn-primary text-white font-main"
+              onClick={handlePrevious}
+            >
               Previous
             </button>
           )}

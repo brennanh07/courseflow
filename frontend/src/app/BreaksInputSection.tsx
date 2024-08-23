@@ -36,7 +36,7 @@ export default function BreaksInputSection({
   };
 
   return (
-    <div className="flex justify-center items-center flex-col gap-y-2 my-2">
+    <div className="flex justify-center items-center flex-col gap-y-2 my-4">
       <h1 className="font-main text-6xl">Breaks</h1>
       <h4 className="font-main text-xl">
         Set the start and end times for breaks during the day when you
@@ -45,7 +45,7 @@ export default function BreaksInputSection({
       <h4 className="font-main text-xl">
         If you don&apos;t want any breaks, leave the default start and end times
       </h4>
-      <div className="border bg-red-800 rounded-xl w-fit object-center flex flex-col p-3.5 gap-y-2.5 my-4">
+      <div className="border bg-primary rounded-xl w-fit object-center flex flex-col p-3.5 gap-y-2.5 my-4">
         {breaks.map((breakPeriod, index) => (
           <div className="flex justify-center items-center" key={index}>
             <select
