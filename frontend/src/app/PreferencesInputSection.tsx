@@ -107,17 +107,17 @@ export default function PreferencesInputSection({
 
       <div className="flex flex-col space-y-4">
         <h1 className="text-center text-6xl my-4">Weighting</h1>
-        <div className="flex flex-col gap-y-4 border bg-primary rounded-xl p-3.5 py-3.5">
+        <div className="flex flex-col gap-y-4 border bg-primary rounded-xl p-3.5 py-5">
+          <p className="text-secondary text-center">
+            Weighting determines how much each preference will factor into the
+            schedule generation process
+          </p>
+          <p className="text-secondary text-center">
+            If you want a preference to have no effect, set it to zero
+          </p>
+          <p className="text-secondary text-center">WEIGHTS MUST ADD TO 1.0</p>
           <div className="flex flex-col gap-y-2 items-center">
-            <p className="text-secondary">
-              Weighting determines how much each preference will factor into the
-              schedule generation process
-            </p>
-            <p className="text-secondary">
-              If you want a preference to have no effect, set it to zero
-            </p>
-            <p className="text-secondary">Weights must add to 1.0</p>
-            <h2 className="text-accent text-3xl my-4">Class Days Weight</h2>
+            <h2 className="text-accent text-3xl my-2">Class Days Weight</h2>
             <input
               type="number"
               value={preferences.dayWeight}
@@ -130,8 +130,8 @@ export default function PreferencesInputSection({
               className="input w-full max-w-xs text-center text-xl border-none focus:outline-none focus:ring-4 focus:ring-secondary"
             />
           </div>
-          <div className="flex flex-col gap-y-2 items-center">
-            <h2 className="text-accent text-3xl my-5">Time of Day Weight</h2>
+          <div className="flex flex-col gap-y-2 items-center my-2">
+            <h2 className="text-accent text-3xl my-2">Time of Day Weight</h2>
             <input
               type="number"
               value={preferences.timeWeight}
