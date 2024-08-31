@@ -45,3 +45,15 @@ class ScheduleLogSerializer(serializers.ModelSerializer):
     class Meta:
         model = ScheduleLog
         fields = '__all__'
+        
+class ScheduleInputSerializer(serializers.Serializer):
+    courses = serializers.ListField(child=serializers.CharField())
+    breaks = serializers.ListField(child=BreakSerializer(), allow_empty=True)
+    preferred_days = seriliazers.ListField(child=serializers.CharField(), allow_empty=True)
+    preferred_time = serializers.ListField(child=serializers.CharField(), allow_empty=True)
+    day_weight = serializers.FloatField()
+    time_weight = serializers.FloatField()
+    
+class BreakSerializer(serializers.Serializer):
+    start_time = serializers.CharField()
+    end_time = serializers.CharField()
