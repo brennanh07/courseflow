@@ -48,7 +48,7 @@ export default function CourseInputSection({
         corresponding letter to the end of the course number (L = Lecture, B =
         Lab)
       </h4>
-      <h5 className="font-main">Example: PHYS - 2305L -or- PHYS - 2305B</h5>
+      <h5 className="font-main">Example: PHYS-2305L or PHYS-2305B</h5>
 
       <div className="border bg-red-800 rounded-xl w-fit object-center flex flex-col p-3.5 gap-y-2.5 my-4">
         {courses.map((course, index) => (
@@ -60,7 +60,7 @@ export default function CourseInputSection({
               onChange={(e) =>
                 handleCourseChange(index, "subject", e.target.value)
               }
-              className="font-main bg-accent text-lg input input-bordered max-w-xs text-center w-44 focus:outline-none focus:ring-2 focus:ring-secondary"
+              className="text-transform: uppercase font-main bg-accent text-lg input input-bordered max-w-xs text-center w-44 focus:outline-none focus:ring-2 focus:ring-secondary"
             />
             <span className="mx-4 text-3xl text-white">-</span>
             <input
