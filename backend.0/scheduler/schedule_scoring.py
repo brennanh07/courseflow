@@ -5,6 +5,7 @@ import heapq
 import logging
 from itertools import groupby
 from operator import attrgetter
+import json
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
@@ -212,36 +213,65 @@ def print_ranked_schedules(ranked_schedules, top_n=5):
     Args:
         ranked_schedules (list): List of ranked schedules to print.
     """
+    formatted_schedules = []
+    
+    # Add all schedules
     for i, schedule in enumerate(ranked_schedules, 1):
-        logging.info(f"Schedule {i}:")
-        print(format_schedule(schedule))
-        print("\n" + "=" * 40 + "\n")
+        formatted_schedules.append(f"Schedule {i}:\n{format_schedule(schedule)}")
+    
+    # Add top N schedules separately
+    top_schedules = ranked_schedules[:top_n]
+    formatted_schedules.append("\nTop {0} Schedules:\n{1}".format(top_n, "=" * 40))
+    for i, schedule in enumerate(top_schedules, 1):
+        formatted_schedules.append(f"Top {i} Schedule:\n{format_schedule(schedule)}")
+    
+    return formatted_schedules
         
-    # Print the top N schedules again
-    logging.info(f"\nTop {top_n} Schedules:\n" + "=" * 40)
-    for i, schedule in enumerate(ranked_schedules[:top_n], 1):
-        logging.info(f"Top {i} Schedule:")
-        print(format_schedule(schedule))
-        print("\n" + "=" * 40 + "\n")
+def process_input(courses, breaks, preferences):
+    """
+    Process the input JSON data to extract the courses, breaks, and preferences.
+    
+    Args:
+        json_input (dict): JSON data containing courses, breaks, and preferences
+        
+    Returns:
+        tuple: A tuple containing the courses, breaks, and preferences
+    """
+    # data = json_input
+    
+    # courses = data.get("courses", [])
+    # breaks = data.get("breaks", [])
+    # preferences = {
+    #     "preferred_days": data.get("preferred_days", []),
+    #     "preferred_time": data.get("preferred_time", ""),
+    #     "day_weight": data.get("day_weight", 1.0),
+    #     "time_weight": data.get("time_weight", 0.0),
+    # }
+    
+    valid_schedules = get_valid_schedules(courses, breaks)
+    ranked_schedules = rank_schedules(valid_schedules, preferences)
+    formatted_schedules = print_ranked_schedules(ranked_schedules)
+    
+    return formatted_schedules
 
 
 # Example usage
-preferences = {
-    'preferred_days': ['M', 'T', 'W', 'R'],
-    'preferred_time': 'morning',
-    'day_weight': 1.0,
-    'time_weight': 0.0
-}
+# preferences = {
+#     'preferred_days': ['M', 'T', 'W', 'R'],
+#     'preferred_time': 'morning',
+#     'day_weight': 1.0,
+#     'time_weight': 0.0
+# }
 
-courses = ["CS-1114", "MATH-1226", "CS-1014", "ENGE-1216", "ACIS-1504"]
+# courses = ["CS-1114", "MATH-1226", "CS-1014", "ENGE-1216", "ACIS-1504"]
 
-breaks = [
-    # {'begin_time': datetime.time(8, 0), 'end_time': datetime.time(9, 0)},
-    # {'begin_time': '18:00:00', 'end_time': '19:00:00'}
-]
+# breaks = [
+#     # {'begin_time': datetime.time(8, 0), 'end_time': datetime.time(9, 0)},
+#     # {'begin_time': '18:00:00', 'end_time': '19:00:00'}
+# ]
 
-valid_schedules = get_valid_schedules(courses, breaks)
+# valid_schedules = get_valid_schedules(courses, breaks)
 
-ranked_schedules = rank_schedules(valid_schedules, preferences)
+# ranked_schedules = rank_schedules(valid_schedules, preferences)
 
-print_ranked_schedules(ranked_schedules)
+# print_ranked_schedules(ranked_schedules)

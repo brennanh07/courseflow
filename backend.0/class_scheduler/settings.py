@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'scraping.apps.ScrapingConfig',
     'rest_framework',
     'corsheaders',
+    'rest_framework_simplejwt',
 ]
 
 MIDDLEWARE = [
