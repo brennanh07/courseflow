@@ -165,7 +165,7 @@ def score_schedule(schedule, preferences):
     return total_schedule_score
 
 
-def rank_schedules(schedules, preferences, top_n=5):
+def rank_schedules(schedules, preferences, top_n=10):
     """
     Rank all valid schedules based on their scores.
     
@@ -204,26 +204,23 @@ def format_schedule(schedule):
         course_info = f"{section_time.crn.course}: {section_time.days} {section_time.begin_time.strftime('%I:%M %p')} - {section_time.end_time.strftime('%I:%M %p')}"
         formatted_schedule.append(course_info)
     
-    return "\n".join(formatted_schedule)
+    return formatted_schedule
 
-def print_ranked_schedules(ranked_schedules, top_n=5):
+def print_ranked_schedules(ranked_schedules, top_n=10):
     """
-    Prints the ranked schedules in a readable format.
+    Formats the ranked schedules as a list of lists where each list contains strings representing each line of the schedule.
     
     Args:
-        ranked_schedules (list): List of ranked schedules to print.
+        ranked_schedules (list): List of ranked schedules to format.
+        top_n (int): Number of top schedules to include in the output.
+        
+    Returns:
+        list: A list of formatted schedules as lists of strings.
     """
     formatted_schedules = []
     
-    # Add all schedules
-    for i, schedule in enumerate(ranked_schedules, 1):
-        formatted_schedules.append(f"Schedule {i}:\n{format_schedule(schedule)}")
-    
-    # Add top N schedules separately
-    top_schedules = ranked_schedules[:top_n]
-    formatted_schedules.append("\nTop {0} Schedules:\n{1}".format(top_n, "=" * 40))
-    for i, schedule in enumerate(top_schedules, 1):
-        formatted_schedules.append(f"Top {i} Schedule:\n{format_schedule(schedule)}")
+    for i, schedule in enumerate(ranked_schedules[:top_n], 1):
+        formatted_schedules.append([f"Schedule {i}:"] + format_schedule(schedule))
     
     return formatted_schedules
         
@@ -249,8 +246,8 @@ def process_input(courses, breaks, preferences):
     # }
     
     valid_schedules = get_valid_schedules(courses, breaks)
-    ranked_schedules = rank_schedules(valid_schedules, preferences)
-    formatted_schedules = print_ranked_schedules(ranked_schedules)
+    ranked_schedules = rank_schedules(valid_schedules, preferences, top_n=10)
+    formatted_schedules = print_ranked_schedules(ranked_schedules, top_n=10)
     
     return formatted_schedules
 
