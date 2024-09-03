@@ -1,4 +1,4 @@
-import React, { ChangeEvent } from "react";
+import React, { ChangeEvent, useEffect } from "react";
 
 interface Preferences {
   days: string[];
@@ -16,6 +16,14 @@ export default function PreferencesInputSection({
   preferences,
   setPreferences,
 }: PreferencesInputSectionProps) {
+  useEffect(() => {
+    if (!preferences.timesOfDay) {
+      setPreferences((prev) => ({
+        ...prev,
+        timesOfDay: "morning",
+      }));
+    }
+  }, [preferences.timesOfDay, setPreferences]);
   const handleDayChange = (day: string, checked: boolean) => {
     const updatedDays = checked
       ? [...preferences.days, day]
@@ -28,9 +36,12 @@ export default function PreferencesInputSection({
   };
 
   const handleTimeChange = (event: ChangeEvent<HTMLSelectElement>) => {
+    const selectedValue = event.target.value;
+    console.log("Selected Time of Day:", selectedValue); // Debugging line
+
     setPreferences((prev) => ({
       ...prev,
-      timesOfDay: event.target.value,
+      timesOfDay: selectedValue,
     }));
   };
 
@@ -57,19 +68,17 @@ export default function PreferencesInputSection({
           <div className="flex flex-col gap-y-2 items-center">
             <h2 className="text-3xl text-accent">Preferred Class Days</h2>
             <div className="flex flex-col text-accent">
-              {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"].map(
-                (day) => (
-                  <label className="flex items-center my-1 text-2xl" key={day}>
-                    <input
-                      type="checkbox"
-                      checked={preferences.days.includes(day)}
-                      onChange={(e) => handleDayChange(day, e.target.checked)}
-                      className="checkbox checkbox-lg checkbox-secondary [--chkfg:white]"
-                    />
-                    <span className="ml-2">{day}</span>
-                  </label>
-                )
-              )}
+              {["M", "T", "W", "R", "F"].map((day) => (
+                <label className="flex items-center my-1 text-2xl" key={day}>
+                  <input
+                    type="checkbox"
+                    checked={preferences.days.includes(day)}
+                    onChange={(e) => handleDayChange(day, e.target.checked)}
+                    className="checkbox checkbox-lg checkbox-secondary [--chkfg:white]"
+                  />
+                  <span className="ml-2">{day}</span>
+                </label>
+              ))}
             </div>
           </div>
 
@@ -84,19 +93,19 @@ export default function PreferencesInputSection({
             >
               <option
                 className="font-main bg-accent text-black text-center"
-                value="Morning"
+                value="morning"
               >
                 Morning
               </option>
               <option
                 className="font-main bg-accent text-black"
-                value="Afternoon"
+                value="afternoon"
               >
                 Afternoon
               </option>
               <option
                 className="font-main bg-accent text-black"
-                value="Evening"
+                value="evening"
               >
                 Evening
               </option>

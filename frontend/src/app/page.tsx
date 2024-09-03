@@ -40,6 +40,7 @@ export default function Home() {
     dayWeight: 0.5,
     timeWeight: 0.5,
   });
+  const [schedules, setSchedules] = useState<any[]>([]);
 
   const handleNext = () => {
     setStep(step + 1);
@@ -47,6 +48,41 @@ export default function Home() {
 
   const handlePrevious = () => {
     setStep(step - 1);
+  };
+
+  const handleGenerateSchedules = () => {
+    const payload = {
+      courses: courses.map(
+        (course) => `${course.subject}-${course.courseNumber}`
+      ),
+      breaks: breaks
+        .filter((breakPeriod) => breakPeriod.startTime && breakPeriod.endTime) // Filter out empty break periods
+        .map((breakPeriod) => ({
+          begin_time: breakPeriod.startTime,
+          end_time: breakPeriod.endTime,
+        })),
+      preferred_days: preferences.days,
+      preferred_time: preferences.timesOfDay,
+      day_weight: preferences.dayWeight,
+      time_weight: preferences.timeWeight,
+    };
+
+    fetch("http://127.0.0.1:8000/class_scheduler/generate-schedules/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        console.log("API Response Data:", data);
+        setSchedules(Array.isArray(data) ? data : []);
+        setStep(step + 1);
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+      });
   };
 
   return (
@@ -76,13 +112,27 @@ export default function Home() {
               Previous
             </button>
           )}
-          <button className="btn btn-secondary text-white" onClick={handleNext}>
+          <button
+            className="btn btn-secondary text-white"
+            onClick={step === 3 ? handleGenerateSchedules : handleNext}
+          >
             {step === 3 ? "Generate Schedules" : "Next"}
           </button>
         </div>
       )}
 
-      {step === 4 && <div>{/* Display schedules */}</div>}
+      {step === 4 && (
+        <div className="flex flex-col items-center">
+          <h2 className="text-3xl font-main font-bold">Generated Schedules</h2>
+          <ul className="list-disc mt-4">
+            {schedules.map((schedule, index) => (
+              <li key={index} className="text-lg font-main">
+                {schedule}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 }
