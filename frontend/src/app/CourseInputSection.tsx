@@ -50,7 +50,7 @@ export default function CourseInputSection({
       </h4>
       <h5 className="font-main">Example: PHYS-2305L or PHYS-2305B</h5>
 
-      <div className="border bg-red-800 rounded-xl w-fit object-center flex flex-col p-3.5 gap-y-2.5 my-4">
+      <div className="border bg-primary rounded-xl w-fit object-center flex flex-col p-3.5 gap-y-2.5 my-4">
         {courses.map((course, index) => (
           <div className="flex justify-center items-center" key={index}>
             <input

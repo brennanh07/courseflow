@@ -22,9 +22,9 @@ const config: Config = {
     themes: ["light", "dark", {
       mytheme: {
         
-"primary": "#991b1b",
+"primary": "#861F41",
         
-"secondary": "#f97316",
+"secondary": "#E5751F",
         
 "accent": "#f3f4f6",
         
