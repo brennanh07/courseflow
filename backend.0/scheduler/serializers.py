@@ -47,7 +47,7 @@ class ScheduleLogSerializer(serializers.ModelSerializer):
         fields = '__all__'
         
 class BreakSerializer(serializers.Serializer):
-    start_time = serializers.TimeField()
+    begin_time = serializers.TimeField()
     end_time = serializers.TimeField()
         
 class ScheduleInputSerializer(serializers.Serializer):

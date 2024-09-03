@@ -50,22 +50,41 @@ export default function Home() {
     setStep(step - 1);
   };
 
+  function convertTo24Hour(time: string): string {
+    const [timePart, period] = time.split(" ");
+    let [hours, minutes] = timePart.split(":").map(Number);
+
+    if (period === "PM" && hours < 12) {
+      hours += 12;
+    } else if (period === "AM" && hours === 12) {
+      hours = 0;
+    }
+
+    return `${hours.toString().padStart(2, "0")}:${minutes
+      .toString()
+      .padStart(2, "0")}:00`;
+  }
+
   const handleGenerateSchedules = () => {
+    const formattedBreaks = breaks
+      .filter((breakPeriod) => breakPeriod.startTime && breakPeriod.endTime)
+      .map((breakPeriod) => ({
+        begin_time: convertTo24Hour(breakPeriod.startTime),
+        end_time: convertTo24Hour(breakPeriod.endTime),
+      }));
+
     const payload = {
       courses: courses.map(
         (course) => `${course.subject}-${course.courseNumber}`
       ),
-      breaks: breaks
-        .filter((breakPeriod) => breakPeriod.startTime && breakPeriod.endTime) // Filter out empty break periods
-        .map((breakPeriod) => ({
-          begin_time: breakPeriod.startTime,
-          end_time: breakPeriod.endTime,
-        })),
+      breaks: formattedBreaks,
       preferred_days: preferences.days,
       preferred_time: preferences.timesOfDay,
       day_weight: preferences.dayWeight,
       time_weight: preferences.timeWeight,
     };
+
+    console.log("Payload:", payload);
 
     fetch("http://127.0.0.1:8000/class_scheduler/generate-schedules/", {
       method: "POST",
