@@ -6,6 +6,7 @@ import logging
 from itertools import groupby
 from operator import attrgetter
 import json
+from functools import lru_cache
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
@@ -71,7 +72,8 @@ def score_time(begin_time, preferred_time):
     return score
     
 
-def score_section_time(section_time, preferences):
+@lru_cache(maxsize=None)
+def score_section_time_cached(section_time, preferred_time, preferred_days, day_weight, time_weight):
     """
     Scores a single SecionTime object based on user preferences, with normalization.
     
@@ -90,27 +92,36 @@ def score_section_time(section_time, preferences):
     
     else:
         # Calculate the day score based on the proportion of matching days
-        matching_days = set(section_time.days).intersection(set(preferences['preferred_days']))
+        matching_days = set(section_time.days).intersection(set(preferred_days))
         day_score = len(matching_days) / len(section_time.days)
         
         # Time score based on proximity to preferred time of day
-        time_score = score_time(section_time.begin_time, preferences['preferred_time'])
+        time_score = score_time(section_time.begin_time, preferred_time)
         
     
     # Apply weights
-    weighted_day_score = day_score * preferences['day_weight']
-    weighted_time_score = time_score * preferences['time_weight']
+    weighted_day_score = day_score * day_weight
+    weighted_time_score = time_score * time_weight
     
     # Combined score for this SectionTime
     section_time_score = weighted_day_score + weighted_time_score
     
     # Debugging output
-    logging.debug(f"Scoring SectionTime: {section_time}")
-    logging.debug(f"Matching Days: {matching_days}")
-    logging.debug(f"Day Score: {day_score}, Time Score: {time_score}")
-    logging.debug(f"Total SectionTime Score: {section_time_score}")
+    # logging.debug(f"Scoring SectionTime: {section_time}")
+    # logging.debug(f"Matching Days: {matching_days}")
+    # logging.debug(f"Day Score: {day_score}, Time Score: {time_score}")
+    # logging.debug(f"Total SectionTime Score: {section_time_score}")
     
     return section_time_score
+
+def score_section_time(section_time, preferences):
+    return score_section_time_cached(
+        section_time, 
+        preferences['preferred_time'],
+        tuple(preferences['preferred_days']),
+        preferences['day_weight'],
+        preferences['time_weight']
+    )
 
 
 def score_section(section, section_times, preferences):
@@ -198,13 +209,30 @@ def format_schedule(schedule):
     Returns:
         str: A formatted string representing the schedule.
     """
-    formatted_schedule = []
+    day_schedule = defaultdict(list)
+    crn_dict = {}
     
     for section_time in schedule:
-        course_info = f"{section_time.crn.course}: {section_time.days} {section_time.begin_time.strftime('%I:%M %p')} - {section_time.end_time.strftime('%I:%M %p')}"
-        formatted_schedule.append(course_info)
+        day_name = section_time.days.capitalize()
+        class_info = f"{section_time.crn.course}: {section_time.begin_time.strftime('%I:%M %p')} - {section_time.end_time.strftime('%I:%M %p')}"
+        day_schedule[day_name].append((section_time.begin_time, class_info)) # Store tuples of (begin_time, class_info) for sorting
+        
+        if section_time.crn.course not in crn_dict:
+            crn_dict[section_time.crn.course] = section_time.crn.crn
     
-    return formatted_schedule
+    # Sort classes by start time    
+    ordered_schedule = {} 
+    for day in ["M", "T", "W", "R", "F", "S", "U"]:
+        if day in day_schedule:
+            ordered_schedule[day] = [class_info for _, class_info in sorted(day_schedule[day])]
+        else:
+            ordered_schedule[day] = []
+        
+    return {
+        "days": ordered_schedule,
+        "crns": crn_dict
+    }
+
 
 def print_ranked_schedules(ranked_schedules, top_n=10):
     """
@@ -217,12 +245,19 @@ def print_ranked_schedules(ranked_schedules, top_n=10):
     Returns:
         list: A list of formatted schedules as lists of strings.
     """
-    formatted_schedules = []
+    formatted_schedules_list = [] # List of formatted schedules
     
+    # Format each schedule
     for i, schedule in enumerate(ranked_schedules[:top_n], 1):
-        formatted_schedules.append([f"Schedule {i}:"] + format_schedule(schedule))
+        formatted_schedule_data = format_schedule(schedule)
+        formatted_schedule = {
+            "name": f"Schedule {i}",
+            "days": formatted_schedule_data["days"],
+            "crns": formatted_schedule_data["crns"]
+        }
+        formatted_schedules_list.append(formatted_schedule)
     
-    return formatted_schedules
+    return formatted_schedules_list
         
 def process_input(courses, breaks, preferences):
     """

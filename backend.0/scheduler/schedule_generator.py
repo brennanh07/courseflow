@@ -135,6 +135,10 @@ def generate_valid_schedules(section_dict, section_time_dict, current_combinatio
             # Consider the current combination with all SectionTime objects for this CRN added
             new_combination = current_combination + section_times
             
+            # Prune early if the current combination is already invalid
+            if not is_valid_combination(new_combination, breaks):
+                continue
+            
             # print(f"Considering section with times: {section_times}")
             generate_valid_schedules(
                 section_dict,
