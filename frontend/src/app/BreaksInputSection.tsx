@@ -43,7 +43,7 @@ export default function BreaksInputSection({
         don&apos;t want classes
       </h4>
       <h4 className="font-main text-xl">
-        If you don&apos;t want any breaks, leave the default start and end times
+        If no breaks are needed, leave the default start and end times
       </h4>
       <div className="border bg-primary rounded-xl w-fit object-center flex flex-col p-3.5 gap-y-2.5 my-4">
         {breaks.map((breakPeriod, index) => (

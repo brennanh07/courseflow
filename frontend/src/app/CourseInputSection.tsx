@@ -42,13 +42,11 @@ export default function CourseInputSection({
       <h4 className="font-main text-xl">
         Enter the subject and course number for each class you are taking
       </h4>
-      <h5 className="font-main">Example: MATH - 1225</h5>
+      <h5 className="font-main">Example: MATH-1225</h5>
       <h4 className="font-main text-xl">
-        If a course has both a lecture and lab, please specify by adding the
-        corresponding letter to the end of the course number (L = Lecture, B =
-        Lab)
+        IF A COURSE HAS BOTH A LECTURE AND LAB: please specify LAB by adding a &quot;B&quot; to the end of the course number
       </h4>
-      <h5 className="font-main">Example: PHYS-2305L or PHYS-2305B</h5>
+      <h5 className="font-main">Example: PHYS-2305 (Lecture) | PHYS-2305B (Lab)</h5>
 
       <div className="border bg-primary rounded-xl w-fit object-center flex flex-col p-3.5 gap-y-2.5 my-4">
         {courses.map((course, index) => (
