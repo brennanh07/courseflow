@@ -106,6 +106,15 @@ class SectionsSpider(scrapy.Spider):
     def parse_regular(self, cells):
         self.current_crn = int(cells[0].xpath(".//b/text()").get().strip())
         
+        course = cells[1].xpath(".//font/text()").get().strip()
+        credit_hours = cells[5].xpath(".//text()").get().strip()
+        class_type = cells[3].xpath(".//text()").get().strip()
+        
+        # If course is lab, add "B" to end of course code
+        if credit_hours == "0" and class_type == "B":
+            course += "B"
+        
+        
         section_data = (
             self.current_crn,  # Extract CRN from <b> tag
             cells[1].xpath(".//font/text()").get().strip(), # Extract Course from <font> tag
@@ -131,6 +140,14 @@ class SectionsSpider(scrapy.Spider):
     def parse_online_asynchronous(self, cells):    
         self.current_crn = int(cells[0].xpath(".//b/text()").get().strip())
         
+        course = cells[1].xpath(".//font/text()").get().strip()
+        credit_hours = cells[5].xpath(".//text()").get().strip()
+        class_type = cells[3].xpath(".//text()").get().strip()
+        
+        # If course is lab, add "B" to end of course code
+        if credit_hours == "0" and class_type == "B":
+            course += "B"
+        
         section_data = ( 
             self.current_crn, 
             cells[1].xpath(".//font/text()").get().strip(), # course
@@ -155,6 +172,14 @@ class SectionsSpider(scrapy.Spider):
 
     def parse_arranged(self, cells):
         self.current_crn = int(cells[0].xpath(".//b/text()").get().strip())
+        
+        course = cells[1].xpath(".//font/text()").get().strip()
+        credit_hours = cells[5].xpath(".//text()").get().strip()
+        class_type = cells[3].xpath(".//text()").get().strip()
+        
+        # If course is lab, add "B" to end of course code
+        if credit_hours == "0" and class_type == "B":
+            course += "B"
         
         section_data = (  
             self.current_crn,

@@ -225,6 +225,8 @@ def format_schedule(schedule):
     for day in ["M", "T", "W", "R", "F", "S", "U"]:
         if day in day_schedule:
             ordered_schedule[day] = [class_info for _, class_info in sorted(day_schedule[day])]
+        elif "Online" in day_schedule or "Arr" in day_schedule:
+            ordered_schedule["Online/ARR"] = [class_info for _, class_info in sorted(day_schedule.get("Online", []) + day_schedule.get("Arr", []))]
         else:
             ordered_schedule[day] = []
         
