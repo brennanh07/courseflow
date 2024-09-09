@@ -117,11 +117,11 @@ class SectionsSpider(scrapy.Spider):
         
         section_data = (
             self.current_crn,  # Extract CRN from <b> tag
-            cells[1].xpath(".//font/text()").get().strip(), # Extract Course from <font> tag
+            course, # Extract Course from <font> tag
             cells[2].xpath(".//text()").get().strip(), # title
-            cells[3].xpath(".//text()").get().strip(), # class type
+            class_type, # class type
             cells[4].xpath(".//text()").get().strip(), # modality
-            cells[5].xpath(".//text()").get().strip(), # credit hours
+            credit_hours, # credit hours
             cells[6].xpath(".//text()").get().strip(), # capacity
             cells[7].xpath(".//text()").get().strip(), # professor
             cells[11].xpath(".//text()").get().strip(), # location
@@ -150,11 +150,11 @@ class SectionsSpider(scrapy.Spider):
         
         section_data = ( 
             self.current_crn, 
-            cells[1].xpath(".//font/text()").get().strip(), # course
+            course, # course
             cells[2].xpath(".//text()").get().strip(), # title
-            cells[3].xpath(".//text()").get().strip(), # class type
+            class_type, # class type
             cells[4].xpath(".//text()").get().strip(), # modality
-            cells[5].xpath(".//text()").get().strip(), # credit hours
+            credit_hours, # credit hours
             cells[6].xpath(".//text()").get().strip(), # capacity
             cells[7].xpath(".//text()").get().strip(), # professor
             cells[10].xpath(".//text()").get().strip(), # location
@@ -183,11 +183,11 @@ class SectionsSpider(scrapy.Spider):
         
         section_data = (  
             self.current_crn,
-            cells[1].xpath(".//font/text()").get().strip(), # course  
+            course, # course  
             cells[2].xpath(".//text()").get().strip(), # title
-            cells[3].xpath(".//text()").get().strip(), # class type
+            class_type, # class type
             cells[4].xpath(".//text()").get().strip(), # modality
-            cells[5].xpath(".//text()").get().strip(), # credit hours
+            credit_hours, # credit hours
             cells[6].xpath(".//text()").get().strip(), # capacity
             cells[7].xpath(".//text()").get().strip(), # professor
             cells[10].xpath(".//text()").get().strip(), # location
