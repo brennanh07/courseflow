@@ -23,9 +23,9 @@ export default function RootLayout({
           Class Schedule Generator
         </header>
         {children}
-        <footer className="bg-secondary text-white font-main h-12 flex justify-left items-center pl-3">
+        {/* <footer className="bg-secondary text-white font-main h-12 flex justify-left items-center pl-3">
           Created by: Brennan Humphrey
-        </footer>
+        </footer> */}
       </body>
     </html>
   );

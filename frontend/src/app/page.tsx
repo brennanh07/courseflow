@@ -41,6 +41,7 @@ export default function Home() {
     timeWeight: 0.5,
   });
   const [schedules, setSchedules] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const handleNext = () => {
     setStep(step + 1);
@@ -66,6 +67,8 @@ export default function Home() {
   }
 
   const handleGenerateSchedules = () => {
+    setIsLoading(true);
+
     const formattedBreaks = breaks
       .filter((breakPeriod) => breakPeriod.startTime && breakPeriod.endTime)
       .map((breakPeriod) => ({
@@ -98,9 +101,11 @@ export default function Home() {
         console.log("API Response Data:", data);
         setSchedules(Array.isArray(data) ? data : []);
         setStep(step + 1);
+        setIsLoading(false);
       })
       .catch((error) => {
         console.error("Error:", error);
+        setIsLoading(false);
       });
   };
 
@@ -137,6 +142,12 @@ export default function Home() {
           >
             {step === 3 ? "Generate Schedules" : "Next"}
           </button>
+        </div>
+      )}
+
+      {isLoading && (
+        <div className="flex justify-center">
+          <span className="loading loading-lg text-6xl"></span>
         </div>
       )}
 
