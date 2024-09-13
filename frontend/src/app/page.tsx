@@ -110,22 +110,48 @@ export default function Home() {
   };
 
   return (
-    <div>
-      <div className="flex justify-center">
-        {step === 1 && (
+    <div
+      className="flex flex-col items-center bg-cover bg-center bg-no-repeat bg-slate-200"
+      // style={{
+      //   backgroundImage: "url('/background-image.jpg')",
+      // }}
+    >
+      <div className="flex justify-center w-full">
+        {/* Step 1 - Course Input */}
+        <div
+          className={`transition-opacity duration-500 ${
+            step === 1 ? "opacity-100" : "opacity-0"
+          }`}
+          style={{ display: step === 1 ? "block" : "none" }}
+        >
           <CourseInputSection courses={courses} setCourses={setCourses} />
-        )}
-        {step === 2 && (
+        </div>
+
+        {/* Step 2 - Breaks Input */}
+        <div
+          className={`transition-opacity duration-500 ${
+            step === 2 ? "opacity-100" : "opacity-0"
+          }`}
+          style={{ display: step === 2 ? "block" : "none" }}
+        >
           <BreaksInputSection breaks={breaks} setBreaks={setBreaks} />
-        )}
-        {step === 3 && (
+        </div>
+
+        {/* Step 3 - Preferences Input */}
+        <div
+          className={`transition-opacity duration-500 ${
+            step === 3 ? "opacity-100" : "opacity-0"
+          }`}
+          style={{ display: step === 3 ? "block" : "none" }}
+        >
           <PreferencesInputSection
             preferences={preferences}
             setPreferences={setPreferences}
           />
-        )}
+        </div>
       </div>
 
+      {/* Navigation Buttons */}
       {step < 4 && (
         <div className="flex justify-end m-5 space-x-3">
           {step > 1 && (
@@ -145,12 +171,14 @@ export default function Home() {
         </div>
       )}
 
+      {/* Loading Spinner */}
       {isLoading && (
         <div className="flex justify-center">
           <span className="loading loading-lg text-6xl"></span>
         </div>
       )}
 
+      {/* Step 4 - Generated Schedules */}
       {step === 4 && (
         <div className="flex flex-col items-center">
           <h2 className="text-3xl font-main font-bold">Generated Schedules</h2>
