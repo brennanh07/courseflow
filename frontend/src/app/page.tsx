@@ -35,13 +35,16 @@ export default function Home() {
     { startTime: "", endTime: "" },
   ]);
   const [preferences, setPreferences] = useState<Preferences>({
-    days: [],
+    days: ["M", "T", "W", "R", "F"],
     timesOfDay: "",
     dayWeight: 0.5,
     timeWeight: 0.5,
   });
   const [schedules, setSchedules] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isGenerateButtonPressed, setIsGenerateButtonPressed] =
+    useState<boolean>(false);
+  const [errorMessage, setErrorMessage] = useState<string>("");
 
   const handleNext = () => {
     setStep(step + 1);
@@ -67,7 +70,14 @@ export default function Home() {
   }
 
   const handleGenerateSchedules = () => {
+    if (preferences.dayWeight + preferences.timeWeight !== 1.0) {
+      setErrorMessage("Day and Time Weights must add up to 1.0");
+      return;
+    }
+
     setIsLoading(true);
+    setIsGenerateButtonPressed(true);
+    setErrorMessage("");
 
     const formattedBreaks = breaks
       .filter((breakPeriod) => breakPeriod.startTime && breakPeriod.endTime)
@@ -111,65 +121,109 @@ export default function Home() {
 
   return (
     <div
-      className="flex flex-col items-center bg-cover bg-center bg-no-repeat bg-slate-200"
+      className="flex flex-col items-center bg-cover bg-center bg-no-repeat bg-slate-200 min-h-screen"
       // style={{
       //   backgroundImage: "url('/background-image.jpg')",
       // }}
     >
-      <div className="flex justify-center w-full">
-        {/* Step 1 - Course Input */}
-        <div
-          className={`transition-opacity duration-500 ${
-            step === 1 ? "opacity-100" : "opacity-0"
-          }`}
-          style={{ display: step === 1 ? "block" : "none" }}
-        >
-          <CourseInputSection courses={courses} setCourses={setCourses} />
-        </div>
-
-        {/* Step 2 - Breaks Input */}
-        <div
-          className={`transition-opacity duration-500 ${
-            step === 2 ? "opacity-100" : "opacity-0"
-          }`}
-          style={{ display: step === 2 ? "block" : "none" }}
-        >
-          <BreaksInputSection breaks={breaks} setBreaks={setBreaks} />
-        </div>
-
-        {/* Step 3 - Preferences Input */}
-        <div
-          className={`transition-opacity duration-500 ${
-            step === 3 ? "opacity-100" : "opacity-0"
-          }`}
-          style={{ display: step === 3 ? "block" : "none" }}
-        >
-          <PreferencesInputSection
-            preferences={preferences}
-            setPreferences={setPreferences}
-          />
-        </div>
-      </div>
-
-      {/* Navigation Buttons */}
-      {step < 4 && (
-        <div className="flex justify-end m-5 space-x-3">
-          {step > 1 && (
-            <button
-              className="btn btn-primary text-white font-main"
-              onClick={handlePrevious}
-            >
-              Previous
-            </button>
-          )}
+      <div className="flex justify-center items-center w-full">
+        {/* Navigation Buttons on the Left */}
+        {step > 1 ? (
           <button
-            className="btn btn-secondary text-white"
-            onClick={step === 3 ? handleGenerateSchedules : handleNext}
+            className="btn btn-secondary btn-circle text-white font-main"
+            onClick={handlePrevious}
           >
-            {step === 3 ? "Generate Schedules" : "Next"}
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={1.5}
+              stroke="currentColor"
+              className="size-6"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M15.75 19.5 8.25 12l7.5-7.5"
+              />
+            </svg>
           </button>
+        ) : (
+          <div className="" style={{ visibility: "hidden" }}>
+            <button className="btn btn-secondary btn-circle text-white font-main">
+              Hidden
+            </button>
+          </div>
+        )}
+
+        {/* Input Sections */}
+        <div className="flex flex-col items-center justify-center text-center">
+          {/* Step 1 - Course Input */}
+          <div
+            className={`transition-opacity duration-500 ${
+              step === 1 ? "opacity-100" : "opacity-0"
+            }`}
+            style={{ display: step === 1 ? "block" : "none" }}
+          >
+            <CourseInputSection courses={courses} setCourses={setCourses} />
+          </div>
+
+          {/* Step 2 - Breaks Input */}
+          <div
+            className={`transition-opacity duration-500 ${
+              step === 2 ? "opacity-100" : "opacity-0"
+            }`}
+            style={{ display: step === 2 ? "block" : "none" }}
+          >
+            <BreaksInputSection breaks={breaks} setBreaks={setBreaks} />
+          </div>
+
+          {/* Step 3 - Preferences Input */}
+          <div
+            className={`transition-opacity duration-500 ${
+              step === 3 ? "opacity-100" : "opacity-0"
+            }`}
+            style={{
+              display: step === 3 ? "block" : "none",
+              marginLeft: "1rem",
+            }}
+          >
+            <PreferencesInputSection
+              preferences={preferences}
+              setPreferences={setPreferences}
+            />
+          </div>
         </div>
-      )}
+
+        {/* Navigation Buttons on the Right */}
+        {step < 3 ? (
+          <button
+            className="btn btn-secondary btn-circle text-white font-main"
+            onClick={handleNext}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={1.5}
+              stroke="currentColor"
+              className="size-6"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="m8.25 4.5 7.5 7.5-7.5 7.5"
+              />
+            </svg>
+          </button>
+        ) : (
+          <div className="" style={{ visibility: "hidden" }}>
+            <button className="btn btn-secondary btn-circle text-white font-main">
+              Hidden
+            </button>
+          </div>
+        )}
+      </div>
 
       {/* Loading Spinner */}
       {isLoading && (
@@ -189,6 +243,21 @@ export default function Home() {
               </li>
             ))}
           </ul>
+        </div>
+      )}
+
+      {/* Generate Schedules Button at the Bottom */}
+      {step === 3 && !isGenerateButtonPressed && (
+        <div className="w-full flex flex-col items-center mb-5">
+          <button
+            className="btn btn-secondary text-white font-main text-xl mb-2"
+            onClick={handleGenerateSchedules}
+          >
+            Generate Schedules
+          </button>
+          {errorMessage && (
+            <div className="text-red-500 text-lg font-main">{errorMessage}</div>
+          )}
         </div>
       )}
     </div>

@@ -39,11 +39,12 @@ export default function CourseInputSection({
   return (
     <div className="flex justify-center items-center flex-col my-8 px-4">
       {/* Section Header */}
-      <div className="w-full max-w-4xl p-8 bg-gray-100 shadow-lg rounded-lg text-center">
-        <h1 className="ont-main text-5xl font-extrabold mb-6 text-primary">
+      <div className="w-full max-w-4xl p-8 bg-neutral shadow-lg rounded-xl text-center">
+        <h1 className="font-main text-5xl font-extrabold mb-6 text-primary">
           Course Input
         </h1>
 
+        {/* Instructions */}
         <div className="space-y-4 mb-8">
           <p className="text-lg mt-2">
             Enter the subject and course number for each class you are taking
@@ -57,7 +58,7 @@ export default function CourseInputSection({
           </p>
         </div>
 
-        {/* Input Form */}
+        {/* Courses Input Form */}
         <div className="bg-primary shadow-xl rounded-lg p-6">
           <div className="grid grid-cols-1 gap-6">
             {courses.map((course, index) => (
@@ -72,7 +73,7 @@ export default function CourseInputSection({
                   onChange={(e) =>
                     handleCourseChange(index, "subject", e.target.value)
                   }
-                  className="text-transform: uppercase font-main bg-accent text-lg input input-bordered w-44 text-center focus:outline-none focus:ring-2 focus:ring-secondary"
+                  className="text-transform: uppercase font-main bg-accent text-lg input input-bordered w-48 text-center focus:outline-none focus:ring-2 focus:ring-secondary"
                 />
                 <span className="text-3xl text-neutral">-</span>
                 <input
@@ -82,18 +83,48 @@ export default function CourseInputSection({
                   onChange={(e) =>
                     handleCourseChange(index, "courseNumber", e.target.value)
                   }
-                  className="font-main bg-accent text-lg input input-bordered w-44 text-center focus:outline-none focus:ring-2 focus:ring-secondary"
+                  className="text-transform: uppercase font-main bg-accent text-lg input input-bordered w-48 text-center focus:outline-none focus:ring-2 focus:ring-secondary"
                 />
+
+                {/* Remove Course Button */}
                 {courses.length > 1 && index > 0 ? (
                   <button
-                    className="font-main btn bg-accent text-xl ml-2 text-center border-none hover:bg-secondary hover:text-white"
+                    className="font-main btn btn-circle bg-accent text-xl ml-2 text-center border-none hover:bg-secondary hover:text-white"
                     onClick={() => removeCourse(index)}
                   >
-                    -
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      strokeWidth={1.5}
+                      stroke="currentColor"
+                      className="size-6"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M5 12h14"
+                      />
+                    </svg>
                   </button>
                 ) : (
                   <div className="ml-2" style={{ visibility: "hidden" }}>
-                    <button className="font-main btn">-</button>
+                    <button className="font-main btn btn-circle">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        strokeWidth={1.5}
+                        stroke="currentColor"
+                        className="size-6"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M5 12h14"
+                        />
+                      </svg>
+                    </button>
                   </div>
                 )}
               </div>
@@ -102,12 +133,25 @@ export default function CourseInputSection({
 
           {/* Add Course Button */}
           {courses.length < 8 && (
-            <div className="flex justify-center mt-6">
+            <div className="flex justify-center mt-6 mr-2">
               <button
-                className="font-main bg-accent btn text-lg text-center border-none hover:bg-secondary hover:text-white"
+                className="font-main bg-accent btn btn-circle text-lg text-center border-none hover:bg-secondary hover:text-white"
                 onClick={addCourse}
               >
-                +
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                  className="size-6"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M12 4.5v15m7.5-7.5h-15"
+                  />
+                </svg>
               </button>
             </div>
           )}
