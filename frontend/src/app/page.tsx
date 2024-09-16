@@ -4,6 +4,12 @@ import { useState } from "react";
 import CourseInputSection from "./CourseInputSection";
 import BreaksInputSection from "./BreaksInputSection";
 import PreferencesInputSection from "./PreferencesInputSection";
+import FullCalendar from "@fullcalendar/react";
+import dayGridPlugin from "@fullcalendar/daygrid";
+import timeGridPlugin from "@fullcalendar/timegrid";
+import interactionPlugin from "@fullcalendar/interaction";
+import momentPlugin from "@fullcalendar/moment";
+
 
 interface Course {
   subject: string;
@@ -128,7 +134,7 @@ export default function Home() {
     >
       <div className="flex justify-center items-center w-full">
         {/* Navigation Buttons on the Left */}
-        {step > 1 ? (
+        {step > 1 && step < 4 ? (
           <button
             className="btn btn-secondary btn-circle text-white font-main"
             onClick={handlePrevious}
@@ -234,16 +240,56 @@ export default function Home() {
 
       {/* Step 4 - Generated Schedules */}
       {step === 4 && (
-        <div className="flex flex-col items-center">
-          <h2 className="text-3xl font-main font-bold">Generated Schedules</h2>
-          <ul className="list-disc mt-4">
-            {schedules.map((schedule, index) => (
-              <li key={index} className="text-lg font-main">
-                {schedule}
-              </li>
-            ))}
-          </ul>
+        <div>
+          <div>
+            <FullCalendar 
+              plugins={[
+                dayGridPlugin,
+                timeGridPlugin,
+                interactionPlugin,
+                momentPlugin, 
+              ]}
+              initialView="timeGridWeek"
+              initialDate={"2099-01-05"}
+              weekends={false}
+              headerToolbar={{
+                left: "prev,next",
+                center: "",
+                right: "",
+              }}
+              events={[
+                { title: 'Example Class 1', start: '2099-01-05T08:00:00', end: '2099-01-05T08:50:00' },
+                { title: 'Example Class 2', start: '2099-01-05T09:05:00', end: '2099-01-05T09:55:00' },
+                { title: 'Example Class 3', start: '2099-01-06T09:05:00', end: '2099-01-06T09:55:00' },
+              ]}
+              nowIndicator={true}
+              height="auto"
+              allDayContent=""
+              allDaySlot={false}
+              slotMinTime={"08:00:00"}
+              slotMaxTime={"23:00:00"}
+              titleFormat={"MMMM D, YYYY"}
+              dayHeaderFormat={"ddd"}
+              expandRows={true}
+              
+              
+    
+              
+              
+            
+            />         
+          </div>
         </div>
+        // <div className="flex flex-col items-center">
+        //   <h2 className="text-3xl font-main font-bold">Generated Schedules</h2>
+        //   <ul className="list-disc mt-4">
+        //     {schedules.map((schedule, index) => (
+        //       <li key={index} className="text-lg font-main">
+        //         {schedule}
+        //       </li>
+        //     ))}
+        //   </ul>
+        // </div>
       )}
 
       {/* Generate Schedules Button at the Bottom */}
