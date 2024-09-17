@@ -9,7 +9,8 @@ import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import momentPlugin from "@fullcalendar/moment";
-
+import { Description, Dialog, DialogPanel, DialogTitle, Button } from '@headlessui/react'
+import MyModal from "./EventInfoModal";
 
 interface Course {
   subject: string;
@@ -26,6 +27,17 @@ interface Preferences {
   timesOfDay: string;
   dayWeight: number;
   timeWeight: number;
+}
+
+interface ClassEvent {
+  title: string;
+  start: Date | string;
+  end: Date | string;
+  info: string;
+  // crn: string;
+  // location: string;
+  // instructor: string;
+
 }
 
 // export const metadata: Metadata = {
@@ -47,10 +59,14 @@ export default function Home() {
     timeWeight: 0.5,
   });
   const [schedules, setSchedules] = useState<any[]>([]);
+  const [events, setEvents] = useState<ClassEvent[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isGenerateButtonPressed, setIsGenerateButtonPressed] =
     useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
+
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [selectedEvent, setSelectedEvent] = useState<ClassEvent | null>(null);
 
   const handleNext = () => {
     setStep(step + 1);
@@ -73,6 +89,19 @@ export default function Home() {
     return `${hours.toString().padStart(2, "0")}:${minutes
       .toString()
       .padStart(2, "0")}:00`;
+  }
+
+  type DayOfWeek = "M" | "T" | "W" | "R" | "F";
+
+  function convertToISODate(day: DayOfWeek, time: string): string {
+    const daysOfWeek : Record<DayOfWeek, string> = {
+      M: "2099-01-05",
+      T: "2099-01-06",
+      W: "2099-01-07",
+      R: "2099-01-08",
+      F: "2099-01-09",
+    };
+    return `${daysOfWeek[day]}T${convertTo24Hour(time)}`;
   }
 
   const handleGenerateSchedules = () => {
@@ -112,17 +141,73 @@ export default function Home() {
       },
       body: JSON.stringify(payload),
     })
-      .then((response) => response.json())
-      .then((data) => {
-        console.log("API Response Data:", data);
-        setSchedules(Array.isArray(data) ? data : []);
-        setStep(step + 1);
-        setIsLoading(false);
-      })
-      .catch((error) => {
-        console.error("Error:", error);
-        setIsLoading(false);
+    // testing with the first schedule returned only
+    .then((response) => response.json())
+    .then((data) => {
+      console.log("API Response Data:", data);
+      setSchedules(Array.isArray(data) ? data : []);
+      const newEvents: ClassEvent[] = [];
+      const firstSchedule = data.schedules[0]; // Extract the first schedule
+      Object.keys(firstSchedule.days).forEach((day) => {
+        const dayOfWeek = day as DayOfWeek;
+        firstSchedule.days[dayOfWeek].forEach((classInfo: string) => {
+          const [title, timeRange] = classInfo.split(": ");
+          const [startTime, endTime] = timeRange.split(" - ");
+          newEvents.push({
+            title,
+            start: convertToISODate(dayOfWeek, startTime),
+            end: convertToISODate(dayOfWeek, endTime),
+            info: `CRN: ${firstSchedule.crns[title.split(": ")[0]]}`,
+          });
+        });
       });
+      setEvents(newEvents);
+      setStep(step + 1);
+      setIsLoading(false);
+    })
+    .catch((error) => {
+      console.error("Error:", error);
+      setIsLoading(false);
+    });
+  };
+  //     .then((response) => response.json())
+  //     .then((data) => {
+  //       console.log("API Response Data:", data);
+  //       setSchedules(Array.isArray(data) ? data : []);
+  //       const newEvents: ClassEvent[] = [];
+  //       data.schedules.forEach((schedule: any) => {
+  //         Object.keys(schedule.days).forEach((day) => {
+  //           const dayOfWeek = day as DayOfWeek;
+  //           schedule.days[day].forEach((classInfo: string) => {
+  //             const [title, timeRange] = classInfo.split(": ");
+  //             const [startTime, endTime] = timeRange.split(" - ");
+  //             newEvents.push({
+  //               title, 
+  //               start: convertToISODate (dayOfWeek, startTime),
+  //               end: convertToISODate(dayOfWeek, endTime),
+  //               info: `CRN: ${schedule.crns[title.split("-")[0]]}`,
+  //             });
+  //           });
+  //         });
+  //       });
+  //       setEvents(newEvents);
+  //       setStep(step + 1);
+  //       setIsLoading(false);
+  //     })
+  //     .catch((error) => {
+  //       console.error("Error:", error);
+  //       setIsLoading(false);
+  //     });
+  // };
+
+  const handleEventClick = (info: any) => {
+    setSelectedEvent({
+      title: info.event.title,
+      start: info.event.start,
+      end: info.event.end,
+      info: info.event.extendedProps.info,
+    });
+    setIsModalOpen(true);
   };
 
   return (
@@ -240,28 +325,44 @@ export default function Home() {
 
       {/* Step 4 - Generated Schedules */}
       {step === 4 && (
-        <div>
-          <div>
-            <FullCalendar 
+        <div className="flex flex-col p-10 min-h-screen">
+          <div className="bg-white shadow-xl rounded rounded-xl">
+            <FullCalendar
               plugins={[
                 dayGridPlugin,
                 timeGridPlugin,
                 interactionPlugin,
-                momentPlugin, 
+                momentPlugin,
               ]}
               initialView="timeGridWeek"
               initialDate={"2099-01-05"}
               weekends={false}
               headerToolbar={{
-                left: "prev,next",
+                left: "",
                 center: "",
                 right: "",
               }}
-              events={[
-                { title: 'Example Class 1', start: '2099-01-05T08:00:00', end: '2099-01-05T08:50:00' },
-                { title: 'Example Class 2', start: '2099-01-05T09:05:00', end: '2099-01-05T09:55:00' },
-                { title: 'Example Class 3', start: '2099-01-06T09:05:00', end: '2099-01-06T09:55:00' },
-              ]}
+              events={events}
+              // events={[
+              //   {
+              //     title: "Example Class 1",
+              //     start: "2099-01-05T08:00:00",
+              //     end: "2099-01-05T08:50:00",
+              //     info: "This is a test event",
+              //   },
+              //   {
+              //     title: "Example Class 2",
+              //     start: "2099-01-05T09:05:00",
+              //     end: "2099-01-05T09:55:00",
+              //     info: "This is a test event",
+              //   },
+              //   {
+              //     title: "Example Class 3",
+              //     start: "2099-01-06T09:05:00",
+              //     end: "2099-01-06T09:55:00",
+              //     info: "This is a test event",
+              //   },
+              // ]}
               nowIndicator={true}
               height="auto"
               allDayContent=""
@@ -270,14 +371,8 @@ export default function Home() {
               slotMaxTime={"23:00:00"}
               titleFormat={"MMMM D, YYYY"}
               dayHeaderFormat={"ddd"}
-              expandRows={true}
-              
-              
-    
-              
-              
-            
-            />         
+              eventClick={handleEventClick}
+            />
           </div>
         </div>
         // <div className="flex flex-col items-center">
@@ -305,6 +400,51 @@ export default function Home() {
             <div className="text-red-500 text-lg font-main">{errorMessage}</div>
           )}
         </div>
+      )}
+
+      {/* Modal */}
+      {isModalOpen && selectedEvent && (
+        <>
+        <Dialog
+          open={isModalOpen}
+          as="div"
+          className="relative z-10 focus:outline-none"
+          onClose={close}
+        >
+          <div className="fixed inset-0 z-10 w-screen overflow-y-auto">
+            <div className="flex min-h-full items-center justify-center p-4">
+              <DialogPanel
+                transition
+                className="w-full max-w-md rounded-xl bg-neutral shadow-xl p-6 backdrop-blur-2xl duration-300 ease-out data-[closed]:transform-[scale(95%)] data-[closed]:opacity-0"
+              >
+                <DialogTitle
+                  as="h2"
+                  className="font-main text-2xl font-bold mb-4 text-primary"
+                >
+                  {selectedEvent.title}
+                </DialogTitle>
+                <p>
+                  <strong>Start:</strong> {selectedEvent.start.toString()}
+                </p>
+                <p>
+                  <strong>End:</strong> {selectedEvent.end.toString()}
+                </p>
+                <p>
+                  <strong>Info:</strong> {selectedEvent.info}
+                </p>
+                <div className="mt-4">
+                  <Button
+                    className="inline-flex items-center gap-2 rounded-md bg-gray-700 py-1.5 px-3 text-sm/6 font-semibold text-white shadow-inner shadow-white/10 focus:outline-none data-[hover]:bg-gray-600 data-[focus]:outline-1 data-[focus]:outline-white data-[open]:bg-gray-700"
+                    onClick={() => setIsModalOpen(false)}
+                  >
+                    Close
+                  </Button>
+                </div>
+              </DialogPanel>
+            </div>
+          </div>
+        </Dialog>
+      </>
       )}
     </div>
   );

@@ -57,7 +57,7 @@ class SectionsSpider(scrapy.Spider):
                 formdata={
                     'CAMPUS': '0',
                     'TERMYEAR': '202409',
-                    'CORE_CODE': '%',
+                    'CORE_CODE': 'AR%',
                     'subj_code': subject,
                     'SCHDTYPE': '%',
                     'CRSE_NUMBER': '',
@@ -65,7 +65,8 @@ class SectionsSpider(scrapy.Spider):
                     'open_only': '',
                     'sess_code': '%',
                     'BTN_PRESSED': 'FIND class sections',
-                    'disp_comments_in' : 'N'
+                    'disp_comments_in' : 'N',
+                    
                 },
                 callback=self.parse,
                 meta={"subject": subject}
@@ -73,6 +74,13 @@ class SectionsSpider(scrapy.Spider):
                 
 
     def parse(self, response):
+        # log raw html response
+        # subject = response.meta["subject"]
+        # filename = f"sections_{subject}.html"
+        
+        # with open (filename, 'w', encoding='utf-8') as f:
+        #     f.write(response.text)
+            
         rows = response.xpath("//table[@class='dataentrytable']/tr[position()>1]")
         for row in rows:
             cells = row.xpath(".//td")
