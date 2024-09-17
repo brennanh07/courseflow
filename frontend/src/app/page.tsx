@@ -9,7 +9,13 @@ import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import momentPlugin from "@fullcalendar/moment";
-import { Description, Dialog, DialogPanel, DialogTitle, Button } from '@headlessui/react'
+import {
+  Description,
+  Dialog,
+  DialogPanel,
+  DialogTitle,
+  Button,
+} from "@headlessui/react";
 import MyModal from "./EventInfoModal";
 
 interface Course {
@@ -33,11 +39,10 @@ interface ClassEvent {
   title: string;
   start: Date | string;
   end: Date | string;
-  info: string;
+  crn: string;
   // crn: string;
   // location: string;
   // instructor: string;
-
 }
 
 // export const metadata: Metadata = {
@@ -58,7 +63,6 @@ export default function Home() {
     dayWeight: 0.5,
     timeWeight: 0.5,
   });
-  const [schedules, setSchedules] = useState<any[]>([]);
   const [events, setEvents] = useState<ClassEvent[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isGenerateButtonPressed, setIsGenerateButtonPressed] =
@@ -94,7 +98,7 @@ export default function Home() {
   type DayOfWeek = "M" | "T" | "W" | "R" | "F";
 
   function convertToISODate(day: DayOfWeek, time: string): string {
-    const daysOfWeek : Record<DayOfWeek, string> = {
+    const daysOfWeek: Record<DayOfWeek, string> = {
       M: "2099-01-05",
       T: "2099-01-06",
       W: "2099-01-07",
@@ -102,6 +106,17 @@ export default function Home() {
       F: "2099-01-09",
     };
     return `${daysOfWeek[day]}T${convertTo24Hour(time)}`;
+  }
+
+  function convertFromISODate(isoDate: string): string {
+    const date = new Date(isoDate);
+    let hours = date.getHours();
+    const minutes = date.getMinutes();
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12;
+    hours = hours ? hours : 12; // the hour '0' should be '12'
+    const minutesStr = minutes < 10 ? '0' + minutes : minutes;
+    return `${hours}:${minutesStr} ${ampm}`;
   }
 
   const handleGenerateSchedules = () => {
@@ -141,34 +156,44 @@ export default function Home() {
       },
       body: JSON.stringify(payload),
     })
-    // testing with the first schedule returned only
-    .then((response) => response.json())
-    .then((data) => {
-      console.log("API Response Data:", data);
-      setSchedules(Array.isArray(data) ? data : []);
-      const newEvents: ClassEvent[] = [];
-      const firstSchedule = data.schedules[0]; // Extract the first schedule
-      Object.keys(firstSchedule.days).forEach((day) => {
-        const dayOfWeek = day as DayOfWeek;
-        firstSchedule.days[dayOfWeek].forEach((classInfo: string) => {
-          const [title, timeRange] = classInfo.split(": ");
-          const [startTime, endTime] = timeRange.split(" - ");
-          newEvents.push({
-            title,
-            start: convertToISODate(dayOfWeek, startTime),
-            end: convertToISODate(dayOfWeek, endTime),
-            info: `CRN: ${firstSchedule.crns[title.split(": ")[0]]}`,
+      // testing with the first schedule returned only
+      .then((response) => response.json())
+      .then((data) => {
+        console.log("API Response Data:", data);
+
+        const newEvents: ClassEvent[] = []; // Initialize an empty array to store the events
+        const firstSchedule = data.schedules[0]; // Extract the first schedule
+
+        // Loop through each day of the week in the schedule
+        Object.keys(firstSchedule.days).forEach((day) => {
+          const dayOfWeek = day as DayOfWeek; // Convert the day to a DayOfWeek type
+
+          // Loop through each class in the day
+          firstSchedule.days[dayOfWeek].forEach((classInfo: string) => {
+            const [title, timeRange] = classInfo.split(": "); // Split the class info into title and time range
+            const [startTime, endTime] = timeRange.split(" - "); // Split the time range into start and end times
+
+            var start = (convertToISODate(dayOfWeek, startTime));
+            console.log(start);
+            console.log(convertFromISODate(start));
+
+            // Push the new event to the array
+            newEvents.push({
+              title,
+              start: convertToISODate(dayOfWeek, startTime),
+              end: convertToISODate(dayOfWeek, endTime),
+              crn: `${firstSchedule.crns[title.split(": ")[0]]}`,
+            });
           });
         });
+        setEvents(newEvents);
+        setStep(step + 1);
+        setIsLoading(false);
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+        setIsLoading(false);
       });
-      setEvents(newEvents);
-      setStep(step + 1);
-      setIsLoading(false);
-    })
-    .catch((error) => {
-      console.error("Error:", error);
-      setIsLoading(false);
-    });
   };
   //     .then((response) => response.json())
   //     .then((data) => {
@@ -182,7 +207,7 @@ export default function Home() {
   //             const [title, timeRange] = classInfo.split(": ");
   //             const [startTime, endTime] = timeRange.split(" - ");
   //             newEvents.push({
-  //               title, 
+  //               title,
   //               start: convertToISODate (dayOfWeek, startTime),
   //               end: convertToISODate(dayOfWeek, endTime),
   //               info: `CRN: ${schedule.crns[title.split("-")[0]]}`,
@@ -205,7 +230,7 @@ export default function Home() {
       title: info.event.title,
       start: info.event.start,
       end: info.event.end,
-      info: info.event.extendedProps.info,
+      crn: info.event.extendedProps.crn,
     });
     setIsModalOpen(true);
   };
@@ -325,7 +350,7 @@ export default function Home() {
 
       {/* Step 4 - Generated Schedules */}
       {step === 4 && (
-        <div className="flex flex-col p-10 min-h-screen">
+        <div className="flex flex-col p-10 -mt-10 -mb-20">
           <div className="bg-white shadow-xl rounded rounded-xl">
             <FullCalendar
               plugins={[
@@ -372,6 +397,7 @@ export default function Home() {
               titleFormat={"MMMM D, YYYY"}
               dayHeaderFormat={"ddd"}
               eventClick={handleEventClick}
+              eventColor="#861F41"
             />
           </div>
         </div>
@@ -405,46 +431,46 @@ export default function Home() {
       {/* Modal */}
       {isModalOpen && selectedEvent && (
         <>
-        <Dialog
-          open={isModalOpen}
-          as="div"
-          className="relative z-10 focus:outline-none"
-          onClose={close}
-        >
-          <div className="fixed inset-0 z-10 w-screen overflow-y-auto">
-            <div className="flex min-h-full items-center justify-center p-4">
-              <DialogPanel
-                transition
-                className="w-full max-w-md rounded-xl bg-neutral shadow-xl p-6 backdrop-blur-2xl duration-300 ease-out data-[closed]:transform-[scale(95%)] data-[closed]:opacity-0"
-              >
-                <DialogTitle
-                  as="h2"
-                  className="font-main text-2xl font-bold mb-4 text-primary"
+          <Dialog
+            open={isModalOpen}
+            as="div"
+            className="relative z-10 focus:outline-none"
+            onClose={close}
+          >
+            <div className="fixed inset-0 z-10 w-screen overflow-y-auto">
+              <div className="flex min-h-full items-center justify-center p-4">
+                <DialogPanel
+                  transition
+                  className="w-full max-w-md rounded-xl bg-neutral shadow-xl p-6 backdrop-blur-2xl duration-300 ease-out data-[closed]:transform-[scale(95%)] data-[closed]:opacity-0"
                 >
-                  {selectedEvent.title}
-                </DialogTitle>
-                <p>
-                  <strong>Start:</strong> {selectedEvent.start.toString()}
-                </p>
-                <p>
-                  <strong>End:</strong> {selectedEvent.end.toString()}
-                </p>
-                <p>
-                  <strong>Info:</strong> {selectedEvent.info}
-                </p>
-                <div className="mt-4">
-                  <Button
-                    className="inline-flex items-center gap-2 rounded-md bg-gray-700 py-1.5 px-3 text-sm/6 font-semibold text-white shadow-inner shadow-white/10 focus:outline-none data-[hover]:bg-gray-600 data-[focus]:outline-1 data-[focus]:outline-white data-[open]:bg-gray-700"
-                    onClick={() => setIsModalOpen(false)}
+                  <DialogTitle
+                    as="h2"
+                    className="font-main text-2xl font-bold mb-4 text-primary"
                   >
-                    Close
-                  </Button>
-                </div>
-              </DialogPanel>
+                    {selectedEvent.title}
+                  </DialogTitle>
+                  <p className="mb-2">
+                    <strong>Start:</strong> {convertFromISODate(selectedEvent.start.toString())}
+                  </p>
+                  <p className="mb-2">
+                    <strong>End:</strong> {convertFromISODate(selectedEvent.end.toString())}
+                  </p>
+                  <p>
+                    <strong>CRN:</strong> {selectedEvent.crn}
+                  </p>
+                  <div className="mt-4">
+                    <Button
+                      className="inline-flex items-center gap-2 rounded-md bg-primary py-1.5 px-3 text-sm/6 font-semibold text-white shadow-inner shadow-white/10 focus:outline-none data-[hover]:bg-gray-600 data-[focus]:outline-1 data-[focus]:outline-white data-[open]:bg-gray-700"
+                      onClick={() => setIsModalOpen(false)}
+                    >
+                      Close
+                    </Button>
+                  </div>
+                </DialogPanel>
+              </div>
             </div>
-          </div>
-        </Dialog>
-      </>
+          </Dialog>
+        </>
       )}
     </div>
   );
