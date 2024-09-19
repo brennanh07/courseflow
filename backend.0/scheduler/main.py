@@ -2,7 +2,7 @@ from fetch_sections import SectionFetcher
 from schedule_generator import ScheduleGenerator
 from schedule_formatter import ScheduleFormatter
 
-def process_schedule(courses, breaks, preferences, max_schedules=10):
+def process_schedules(courses, breaks, preferences, max_schedules=10):
     """
     Main function to generate and format schedules for the given list of courses and input.
     
@@ -16,8 +16,8 @@ def process_schedule(courses, breaks, preferences, max_schedules=10):
         list: A list of formatted schedules as dictionaries with names, days, and CRNs
     """
     # Fetch sections from the database
-    section_fetcher = SectionFetcher()
-    section_dict, section_time_dict = section_fetcher.fetch_sections(courses)
+    section_fetcher = SectionFetcher(courses)
+    section_dict, section_time_dict = section_fetcher.fetch_sections()
     
     # Generate and score valid schedules dynamically
     schedule_generator = ScheduleGenerator(section_dict, section_time_dict, breaks, preferences, max_schedules)
@@ -27,3 +27,6 @@ def process_schedule(courses, breaks, preferences, max_schedules=10):
     formatter = ScheduleFormatter(date_format="%I:%M %p")
     
     return formatter.print_ranked_schedules(top_schedules, top_n=max_schedules)
+
+
+# Example usage

@@ -7,8 +7,7 @@ from scheduler.serializers import (
     SubjectSerializer, ProfessorSerializer, SectionSerializer, SectionTimeSerializer, UserSerializer, PreferenceSerializer, 
     WeightSerializer, ScheduleSerializer, ScheduleLogSerializer, ScheduleInputSerializer, BreakSerializer
 )
-from .schedule_scoring import process_input
-from .schedule_generator import get_valid_schedules
+
 import logging
 from django.http import JsonResponse
 

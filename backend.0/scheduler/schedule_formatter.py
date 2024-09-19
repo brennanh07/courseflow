@@ -24,8 +24,8 @@ class ScheduleFormatter:
         crn_dict = {}
         
         for section_time in schedule:
-            day_name = section_time.day.capitalize()
-            class_info = f"{section_time.crn.course}: {section_time.begin.strftime(self.date_format)} - {section_time.end.strftime(self.date_format)}"
+            day_name = section_time.days.capitalize()
+            class_info = f"{section_time.crn.course}: {section_time.begin_time.strftime(self.date_format)} - {section_time.end_time.strftime(self.date_format)}"
             day_schedule[day_name].append((section_time.begin_time, class_info))
             
             if section_time.crn.course not in crn_dict:

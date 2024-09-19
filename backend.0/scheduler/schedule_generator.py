@@ -3,10 +3,14 @@ import os
 import heapq
 from schedule_scoring import ScheduleScorer
 from conflict_checker import is_valid_combination
+import logging
+from fetch_sections import SectionFetcher
 
 # Setup Django settings
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'class_scheduler.settings')
 django.setup()
+
+logging.basicConfig(level=logging.DEBUG, filename='scheduler.log', filemode='w')
 
 from scheduler.models import Section, SectionTime
 
@@ -24,7 +28,10 @@ class ScheduleGenerator:
         self.generate_valid_schedules()
         
         # Sort the heap by score in descending order and return the schedules
-        return [schedule for score, schedule in sorted(self.heap, reverse=True)]
+        # top_schedules = [schedule for score, schedule in sorted(self.heap, reverse=True)]
+        top_schedules = [schedule for score, schedule in heapq.nlargest(self.max_schedules, self.heap)]
+        logging.debug(f"Top {self.max_schedules} schedules: {top_schedules}")
+        return top_schedules
     
     def generate_valid_schedules(self, current_combination=[], selected_courses=set(), cached_section_times=None):
         """
@@ -46,6 +53,8 @@ class ScheduleGenerator:
             
             scorer = ScheduleScorer(self.preferences) # Initialize the schedule scorer
             score = scorer.score_schedule(current_combination) # Score the current schedule
+            
+            logging.debug(f"Scoring schedule: {current_combination}, Score: {score}")
             
             # Use a heap to keep track of the top N schedules
             if len(self.heap) < self.max_schedules or score > self.heap[0][0]:
@@ -85,3 +94,20 @@ class ScheduleGenerator:
                     selected_courses | {section.course},
                     cached_section_times,
                 )
+                
+# Example usage
+# section_dict = {}
+
+# breaks = []
+
+# preferences = {
+#     'preferred_days': ['M', 'T', 'W', 'R', 'F'],
+#     'preferred_time': 'morning',
+#     'day_weight': 0.0,
+#     'time_weight': 1.0
+# }
+
+# schedule_generator = ScheduleGenerator(section_dict, section_time_dict, breaks, preferences, max_schedules=10) 
+
+# schedule_generator.generate_schedules()   
+

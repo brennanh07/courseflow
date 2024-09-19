@@ -46,6 +46,21 @@ class SectionTime(models.Model):
     
     def __str__(self):
         return (f"{self.crn}: {self.days} {self.begin_time} - {self.end_time}")
+    
+    # Define a less-than method to compare SectionTime instances
+    def __lt__(self, other):
+        if self.begin_time == other.begin_time:
+            return self.end_time < other.end_time
+        return self.begin_time < other.begin_time
+
+    # Optionally, define __eq__ and __gt__ as well if needed
+    def __eq__(self, other):
+        return (self.begin_time == other.begin_time) and (self.end_time == other.end_time)
+    
+    def __gt__(self, other):
+        if self.begin_time == other.begin_time:
+            return self.end_time > other.end_time
+        return self.begin_time > other.begin_time
 
 
 class User(models.Model):

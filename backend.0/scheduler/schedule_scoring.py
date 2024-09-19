@@ -1,11 +1,8 @@
 import datetime
-from schedule_generator import get_valid_schedules
 from collections import defaultdict
-import heapq
 import logging
 from itertools import groupby
 from operator import attrgetter
-import json
 from functools import lru_cache
 
 # Setup logging
@@ -29,13 +26,15 @@ class ScheduleScorer:
         
         total_score = sum(self.score_section(section, section_times) for section, section_times in grouped_sections.items())
         
+        logging.debug(f"Schedule: {schedule}, Score: {total_score}")
+        
         return total_score
     
     def group_section_times_by_section(self, section_times):
         
         grouped_sections = defaultdict(list)
         for section_time in section_times:
-            grouped_sections[section_time.crn].append
+            grouped_sections[section_time.crn].append(section_time)
         return grouped_sections
     
     def score_section(self, section, section_times):
@@ -73,7 +72,7 @@ class ScheduleScorer:
         }
         
         if preferred_time not in time_ranges:
-            return 0.0
+            return None
         
         preferred_start, preferred_end = time_ranges[preferred_time]
         
