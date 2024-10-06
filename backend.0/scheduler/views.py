@@ -8,13 +8,7 @@ from scheduler.serializers import (
     WeightSerializer, ScheduleSerializer, ScheduleLogSerializer, ScheduleInputSerializer, BreakSerializer
 )
 
-import logging
 from django.http import JsonResponse
-
-from fetch_sections import SectionFetcher
-from schedule_generator import ScheduleGenerator
-from schedule_scoring import ScheduleScorer
-from schedule_formatter import ScheduleFormatter
 from main import process_schedules
 from logging_config import loggers
 

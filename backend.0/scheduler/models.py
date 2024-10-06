@@ -52,10 +52,6 @@ class SectionTime(models.Model):
         if self.begin_time == other.begin_time:
             return self.end_time < other.end_time
         return self.begin_time < other.begin_time
-
-    # Optionally, define __eq__ and __gt__ as well if needed
-    # def __eq__(self, other):
-    #     return (self.begin_time == other.begin_time) and (self.end_time == other.end_time)
     
     def __gt__(self, other):
         if self.begin_time == other.begin_time:
