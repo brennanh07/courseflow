@@ -54,13 +54,22 @@ class SectionTime(models.Model):
         return self.begin_time < other.begin_time
 
     # Optionally, define __eq__ and __gt__ as well if needed
-    def __eq__(self, other):
-        return (self.begin_time == other.begin_time) and (self.end_time == other.end_time)
+    # def __eq__(self, other):
+    #     return (self.begin_time == other.begin_time) and (self.end_time == other.end_time)
     
     def __gt__(self, other):
         if self.begin_time == other.begin_time:
             return self.end_time > other.end_time
         return self.begin_time > other.begin_time
+    
+    def __hash__(self):
+        return hash((self.crn_id, self.days, self.begin_time, self.end_time))
+
+    def __eq__(self, other):
+        if not isinstance(other, type(self)):
+            return NotImplemented
+        return (self.crn_id, self.days, self.begin_time, self.end_time) == \
+            (other.crn_id, other.days, other.begin_time, other.end_time)
 
 
 class User(models.Model):
