@@ -17,6 +17,8 @@ import {
   Button,
 } from "@headlessui/react";
 import MyModal from "./EventInfoModal";
+import { all } from "axios";
+import "./globals.css";
 
 interface Course {
   subject: string;
@@ -72,6 +74,10 @@ export default function Home() {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [selectedEvent, setSelectedEvent] = useState<ClassEvent | null>(null);
   const [isTimeout, setIsTimeout] = useState<boolean>(false);
+  const [schedules, setSchedules] = useState<ClassEvent[][]>([]);
+  const [currentScheduleIndex, setCurrentScheduleIndex] = useState<number>(0);
+  const [isCRNModalOpen, setIsCRNModalOpen] = useState<boolean>(false);
+  const [copiedCRN, setCopiedCRN] = useState<string | null>(null);
 
   const handleNext = () => {
     setStep(step + 1);
@@ -113,10 +119,10 @@ export default function Home() {
     const date = new Date(isoDate);
     let hours = date.getHours();
     const minutes = date.getMinutes();
-    const ampm = hours >= 12 ? 'PM' : 'AM';
+    const ampm = hours >= 12 ? "PM" : "AM";
     hours = hours % 12;
     hours = hours ? hours : 12; // the hour '0' should be '12'
-    const minutesStr = minutes < 10 ? '0' + minutes : minutes;
+    const minutesStr = minutes < 10 ? "0" + minutes : minutes;
     return `${hours}:${minutesStr} ${ampm}`;
   }
 
@@ -169,32 +175,30 @@ export default function Home() {
           return;
         }
 
-        const newEvents: ClassEvent[] = []; // Initialize an empty array to store the events
-        const firstSchedule = data.schedules[0]; // Extract the first schedule
+        const allSchedules: ClassEvent[][] = []; // Initialize an empty array to store the schedules
 
-        // Loop through each day of the week in the schedule
-        Object.keys(firstSchedule.days).forEach((day) => {
-          const dayOfWeek = day as DayOfWeek; // Convert the day to a DayOfWeek type
-
-          // Loop through each class in the day
-          firstSchedule.days[dayOfWeek].forEach((classInfo: string) => {
-            const [title, timeRange] = classInfo.split(": "); // Split the class info into title and time range
-            const [startTime, endTime] = timeRange.split(" - "); // Split the time range into start and end times
-
-            var start = (convertToISODate(dayOfWeek, startTime));
-            console.log(start);
-            console.log(convertFromISODate(start));
-
-            // Push the new event to the array
-            newEvents.push({
-              title,
-              start: convertToISODate(dayOfWeek, startTime),
-              end: convertToISODate(dayOfWeek, endTime),
-              crn: `${firstSchedule.crns[title.split(": ")[0]]}`,
+        data.schedules.forEach((schedule: any) => {
+          const scheduleEvents: ClassEvent[] = []; // Initialize an empty array to store the events
+          Object.keys(schedule.days).forEach((day) => {
+            const dayOfWeek = day as DayOfWeek; // Convert the day to a DayOfWeek type
+            schedule.days[dayOfWeek].forEach((classInfo: string) => {
+              const [title, timeRange] = classInfo.split(": "); // Split the class info into title and time range
+              const [startTime, endTime] = timeRange.split(" - "); // Split the time range into start and end times
+              // Push the new event to the array
+              scheduleEvents.push({
+                title,
+                start: convertToISODate(dayOfWeek, startTime),
+                end: convertToISODate(dayOfWeek, endTime),
+                crn: `${schedule.crns[title.split(": ")[0]]}`,
+              });
             });
           });
+          allSchedules.push(scheduleEvents); // Push the schedule to the array
         });
-        setEvents(newEvents);
+
+        setSchedules(allSchedules);
+        setEvents(allSchedules[0]);
+        setCurrentScheduleIndex(0);
         setStep(step + 1);
         setIsLoading(false);
       })
@@ -204,35 +208,20 @@ export default function Home() {
         setIsTimeout(true);
       });
   };
-  //     .then((response) => response.json())
-  //     .then((data) => {
-  //       console.log("API Response Data:", data);
-  //       setSchedules(Array.isArray(data) ? data : []);
-  //       const newEvents: ClassEvent[] = [];
-  //       data.schedules.forEach((schedule: any) => {
-  //         Object.keys(schedule.days).forEach((day) => {
-  //           const dayOfWeek = day as DayOfWeek;
-  //           schedule.days[day].forEach((classInfo: string) => {
-  //             const [title, timeRange] = classInfo.split(": ");
-  //             const [startTime, endTime] = timeRange.split(" - ");
-  //             newEvents.push({
-  //               title,
-  //               start: convertToISODate (dayOfWeek, startTime),
-  //               end: convertToISODate(dayOfWeek, endTime),
-  //               info: `CRN: ${schedule.crns[title.split("-")[0]]}`,
-  //             });
-  //           });
-  //         });
-  //       });
-  //       setEvents(newEvents);
-  //       setStep(step + 1);
-  //       setIsLoading(false);
-  //     })
-  //     .catch((error) => {
-  //       console.error("Error:", error);
-  //       setIsLoading(false);
-  //     });
-  // };
+
+  const handleNextSchedule = () => {
+    const nextIndex = (currentScheduleIndex + 1) % schedules.length; // Calculate the next index based on the current index
+    setCurrentScheduleIndex(nextIndex); // Update the current index
+    setEvents(schedules[nextIndex]); // Update the events to the next schedule
+  };
+
+  const handlePreviousSchedule = () => {
+    // Calculate the previous index based on the current index by adding the length of the array to avoid negative values
+    const previousIndex =
+      (currentScheduleIndex - 1 + schedules.length) % schedules.length;
+    setCurrentScheduleIndex(previousIndex); // Update the current index
+    setEvents(schedules[previousIndex]); // Update the events to the previous schedule
+  };
 
   const handleEventClick = (info: any) => {
     setSelectedEvent({
@@ -242,6 +231,52 @@ export default function Home() {
       crn: info.event.extendedProps.crn,
     });
     setIsModalOpen(true);
+  };
+
+  // Function to handle the CRN button click
+  const handleCRNButtonClick = () => {
+    setIsCRNModalOpen(true);
+  };
+
+  // Function to copy the CRN to the clipboard
+  const handleCopyCRN = (crn: string) => {
+    navigator.clipboard.writeText(crn).then(() => {
+      // Copy the CRN to the clipboard
+      setCopiedCRN(crn); // Set the copied CRN
+      setTimeout(() => setCopiedCRN(null), 2000); // Reset after 2 seconds
+    });
+  };
+
+  // Function to get the CRNs of the current schedule
+  const getCurrentScheduleCRNs = () => {
+    if (
+      schedules.length === 0 ||
+      currentScheduleIndex < 0 ||
+      currentScheduleIndex >= schedules.length
+    ) {
+      console.log("No schedules available or invalid index");
+      return []; // Return an empty array if there are no schedules or the index is invalid
+    }
+
+    const currentSchedule = schedules[currentScheduleIndex];
+    if (!currentSchedule || !Array.isArray(currentSchedule)) {
+      console.log("Current schedule is not an array");
+      return []; // Return an empty array if currentSchedule is not an array
+    }
+
+    const uniqueClassesAndCRNs = new Map();
+
+    currentSchedule.forEach((event) => {
+      const className = event.title.split(": ")[0]; // Assuming the title format is "SUBJ-NUM: Class Name"
+      if (!uniqueClassesAndCRNs.has(className)) {
+        uniqueClassesAndCRNs.set(className, event.crn);
+      }
+    });
+
+    return Array.from(uniqueClassesAndCRNs, ([className, crn]) => ({
+      className,
+      crn,
+    }));
   };
 
   return (
@@ -366,67 +401,94 @@ export default function Home() {
 
       {/* Step 4 - Generated Schedules */}
       {step === 4 && (
-        <div className="flex flex-col p-10 -mt-10 -mb-20">
-          <div className="bg-white shadow-xl rounded rounded-xl">
-            <FullCalendar
-              plugins={[
-                dayGridPlugin,
-                timeGridPlugin,
-                interactionPlugin,
-                momentPlugin,
-              ]}
-              initialView="timeGridWeek"
-              initialDate={"2099-01-05"}
-              weekends={false}
-              headerToolbar={{
-                left: "",
-                center: "",
-                right: "",
-              }}
-              events={events}
-              // events={[
-              //   {
-              //     title: "Example Class 1",
-              //     start: "2099-01-05T08:00:00",
-              //     end: "2099-01-05T08:50:00",
-              //     info: "This is a test event",
-              //   },
-              //   {
-              //     title: "Example Class 2",
-              //     start: "2099-01-05T09:05:00",
-              //     end: "2099-01-05T09:55:00",
-              //     info: "This is a test event",
-              //   },
-              //   {
-              //     title: "Example Class 3",
-              //     start: "2099-01-06T09:05:00",
-              //     end: "2099-01-06T09:55:00",
-              //     info: "This is a test event",
-              //   },
-              // ]}
-              nowIndicator={true}
-              height="auto"
-              allDayContent=""
-              allDaySlot={false}
-              slotMinTime={"08:00:00"}
-              slotMaxTime={"23:00:00"}
-              titleFormat={"MMMM D, YYYY"}
-              dayHeaderFormat={"ddd"}
-              eventClick={handleEventClick}
-              eventColor="#861F41"
-            />
+        <div className="flex flex-col items-center p-4 -mt-10 -mb-20 w-full">
+          <div className="flex justify-between items-center w-full mb-4">
+            <div className="w-1/3">
+              {" "}
+              {/* This empty div helps with centering */}
+            </div>
+            <span className="text-lg font-main text-center w-1/3 font-bold">
+              Schedule {currentScheduleIndex + 1} of {schedules.length}
+            </span>
+            <div className="w-1/3 flex justify-end">
+              <button
+                className="btn btn-secondary text-white font-main mr-16"
+                onClick={handleCRNButtonClick}
+              >
+                Copy CRNs
+              </button>
+            </div>
+          </div>
+          <div className="flex items-center justify-center w-full">
+            <button
+              className="btn btn-secondary btn-circle text-white font-main mr-4"
+              onClick={handlePreviousSchedule}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+                className="size-6"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M15.75 19.5 8.25 12l7.5-7.5"
+                />
+              </svg>
+            </button>
+            <div className="bg-white shadow-xl rounded rounded-xl flex-grow">
+              <FullCalendar
+                plugins={[
+                  dayGridPlugin,
+                  timeGridPlugin,
+                  interactionPlugin,
+                  momentPlugin,
+                ]}
+                initialView="timeGridWeek"
+                initialDate={"2099-01-05"}
+                weekends={false}
+                headerToolbar={{
+                  left: "",
+                  center: "",
+                  right: "",
+                }}
+                events={events}
+                nowIndicator={true}
+                height="auto"
+                allDayContent=""
+                allDaySlot={false}
+                slotMinTime={"08:00:00"}
+                slotMaxTime={"23:00:00"}
+                titleFormat={"MMMM D, YYYY"}
+                dayHeaderFormat={"ddd"}
+                eventClick={handleEventClick}
+                eventColor="#861F41"
+              />
+            </div>
+            <button
+              className="btn btn-secondary btn-circle text-white font-main ml-4"
+              onClick={handleNextSchedule}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+                className="size-6"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="m8.25 4.5 7.5 7.5-7.5 7.5"
+                />
+              </svg>
+            </button>
           </div>
         </div>
-        // <div className="flex flex-col items-center">
-        //   <h2 className="text-3xl font-main font-bold">Generated Schedules</h2>
-        //   <ul className="list-disc mt-4">
-        //     {schedules.map((schedule, index) => (
-        //       <li key={index} className="text-lg font-main">
-        //         {schedule}
-        //       </li>
-        //     ))}
-        //   </ul>
-        // </div>
       )}
 
       {/* Generate Schedules Button at the Bottom */}
@@ -444,50 +506,91 @@ export default function Home() {
         </div>
       )}
 
-      {/* Modal */}
+      {/* Event Info Modal */}
       {isModalOpen && selectedEvent && (
-        <>
-          <Dialog
-            open={isModalOpen}
-            as="div"
-            className="relative z-10 focus:outline-none"
-            onClose={close}
-          >
-            <div className="fixed inset-0 z-10 w-screen overflow-y-auto">
-              <div className="flex min-h-full items-center justify-center p-4">
-                <DialogPanel
-                  transition
-                  className="w-full max-w-md rounded-xl bg-neutral shadow-xl p-6 backdrop-blur-2xl duration-300 ease-out data-[closed]:transform-[scale(95%)] data-[closed]:opacity-0"
+        <Dialog
+          open={isModalOpen}
+          as="div"
+          className="relative z-10"
+          onClose={() => setIsModalOpen(false)}
+        >
+          <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+          <div className="fixed inset-0 z-10 w-screen overflow-y-auto">
+            <div className="flex min-h-full items-center justify-center p-4">
+              <DialogPanel className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
+                <DialogTitle
+                  as="h2"
+                  className="font-main text-2xl font-bold mb-4 text-primary"
                 >
-                  <DialogTitle
-                    as="h2"
-                    className="font-main text-2xl font-bold mb-4 text-primary"
+                  {selectedEvent.title}
+                </DialogTitle>
+                <p className="mb-2">
+                  <strong>Start:</strong>{" "}
+                  {convertFromISODate(selectedEvent.start.toString())}
+                </p>
+                <p className="mb-2">
+                  <strong>End:</strong>{" "}
+                  {convertFromISODate(selectedEvent.end.toString())}
+                </p>
+                <p>
+                  <strong>CRN:</strong> {selectedEvent.crn}
+                </p>
+                <div className="mt-4">
+                  <Button
+                    className="inline-flex items-center gap-2 rounded-md bg-primary py-1.5 px-3 text-sm/6 font-semibold text-white shadow-inner shadow-white/10 focus:outline-none data-[hover]:bg-gray-600 data-[focus]:outline-1 data-[focus]:outline-white data-[open]:bg-gray-700"
+                    onClick={() => setIsModalOpen(false)}
                   >
-                    {selectedEvent.title}
-                  </DialogTitle>
-                  <p className="mb-2">
-                    <strong>Start:</strong> {convertFromISODate(selectedEvent.start.toString())}
-                  </p>
-                  <p className="mb-2">
-                    <strong>End:</strong> {convertFromISODate(selectedEvent.end.toString())}
-                  </p>
-                  <p>
-                    <strong>CRN:</strong> {selectedEvent.crn}
-                  </p>
-                  <div className="mt-4">
-                    <Button
-                      className="inline-flex items-center gap-2 rounded-md bg-primary py-1.5 px-3 text-sm/6 font-semibold text-white shadow-inner shadow-white/10 focus:outline-none data-[hover]:bg-gray-600 data-[focus]:outline-1 data-[focus]:outline-white data-[open]:bg-gray-700"
-                      onClick={() => setIsModalOpen(false)}
-                    >
-                      Close
-                    </Button>
-                  </div>
-                </DialogPanel>
-              </div>
+                    Close
+                  </Button>
+                </div>
+              </DialogPanel>
             </div>
-          </Dialog>
-        </>
+          </div>
+        </Dialog>
       )}
+
+      {/* CRN Modal */}
+      <Dialog
+        open={isCRNModalOpen}
+        onClose={() => setIsCRNModalOpen(false)}
+        className="relative z-10"
+      >
+        <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+        <div className="fixed inset-0 flex items-center justify-center p-4">
+          <DialogPanel className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
+            <DialogTitle className="text-xl font-bold mb-4">
+              CRNs for Current Schedule
+            </DialogTitle>
+            <div className="space-y-2">
+              {getCurrentScheduleCRNs().length > 0 ? (
+                getCurrentScheduleCRNs().map(({ className, crn }) => (
+                  <div key={crn} className="flex justify-between items-center">
+                    <span className="font-medium">
+                      {className}: <span className="font-bold">{crn}</span>
+                    </span>
+                    <button
+                      onClick={() => handleCopyCRN(crn)}
+                      className="btn btn-sm btn-secondary text-white ml-4"
+                    >
+                      {copiedCRN === crn ? "Copied!" : "Copy"}
+                    </button>
+                  </div>
+                ))
+              ) : (
+                <p>No CRNs available for the current schedule.</p>
+              )}
+            </div>
+            <div className="mt-4">
+              <button
+                onClick={() => setIsCRNModalOpen(false)}
+                className="btn btn-primary text-white"
+              >
+                Close
+              </button>
+            </div>
+          </DialogPanel>
+        </div>
+      </Dialog>
     </div>
   );
 }

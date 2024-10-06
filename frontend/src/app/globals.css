@@ -45,3 +45,7 @@
   font-weight: bold;
   unicode-bidi: isolate;
 }  */
+
+.fc-event {
+  cursor: pointer; /* Change cursor to pointer on hover */
+}
