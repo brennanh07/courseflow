@@ -2,6 +2,8 @@ from collections import defaultdict
 import heapq
 from typing import List, Dict, Tuple, Any
 from schedule_scoring import ScheduleScorer
+import threading
+import time
 
 
 class ScheduleHeapElement:
@@ -10,10 +12,10 @@ class ScheduleHeapElement:
         self.schedule = schedule
 
     def __lt__(self, other):
-        return self.score > other.score  # Note: We use > for a max-heap behavior
+        return self.score > other.score
 
     def __eq__(self, other):
-        return self.score == other.score
+        return self.score == other.score 
 
 
 class ScheduleGenerator:
@@ -39,7 +41,13 @@ class ScheduleGenerator:
 
     def generate_schedules(self):
         heap = []
-        self._dfs(0, {}, [], heap)
+        thread = threading.Thread(target=self._dfs, args=(0, {}, [], heap))
+        thread.start()
+        thread.join(timeout=120) # Timeout after 2 minutes
+        if thread.is_alive():
+            print("Schedule generation timed out")
+            return []
+
         return [
             (element.score, element.schedule) for element in sorted(heap)
         ]

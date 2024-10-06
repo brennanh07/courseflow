@@ -71,6 +71,7 @@ export default function Home() {
 
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [selectedEvent, setSelectedEvent] = useState<ClassEvent | null>(null);
+  const [isTimeout, setIsTimeout] = useState<boolean>(false);
 
   const handleNext = () => {
     setStep(step + 1);
@@ -128,6 +129,7 @@ export default function Home() {
     setIsLoading(true);
     setIsGenerateButtonPressed(true);
     setErrorMessage("");
+    setIsTimeout(false);
 
     const formattedBreaks = breaks
       .filter((breakPeriod) => breakPeriod.startTime && breakPeriod.endTime)
@@ -161,6 +163,12 @@ export default function Home() {
       .then((data) => {
         console.log("API Response Data:", data);
 
+        if (data.schedules.length === 0) {
+          setIsTimeout(true);
+          setIsLoading(false);
+          return;
+        }
+
         const newEvents: ClassEvent[] = []; // Initialize an empty array to store the events
         const firstSchedule = data.schedules[0]; // Extract the first schedule
 
@@ -193,6 +201,7 @@ export default function Home() {
       .catch((error) => {
         console.error("Error:", error);
         setIsLoading(false);
+        setIsTimeout(true);
       });
   };
   //     .then((response) => response.json())
@@ -345,6 +354,13 @@ export default function Home() {
       {isLoading && (
         <div className="flex justify-center">
           <span className="loading loading-lg text-6xl"></span>
+        </div>
+      )}
+      {isTimeout && (
+        <div className="flex justify-center">
+          <span className="text-lg font-main text-red-500">
+            Too many possible schedules. Please add breaks.
+          </span>
         </div>
       )}
 
