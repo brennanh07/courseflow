@@ -35,7 +35,9 @@ export default function RootLayout({
             </svg>
           </div>
           <div className="flex-1">
-            <a className="btn btn-ghost text-2xl text-primary">SmartClass Scheduler</a>
+            <a className="btn btn-ghost text-2xl text-primary">
+              SmartClass Scheduler
+            </a>
           </div>
           <div className="flex-none">
             <button className="btn btn-square btn-ghost">
