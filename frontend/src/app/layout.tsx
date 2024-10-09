@@ -1,6 +1,7 @@
 import React from "react";
 import { Metadata } from "next";
 import "./globals.css";
+import Link from "next/link";
 
 export const metadata: Metadata = {
   title: {
@@ -20,26 +21,27 @@ export default function RootLayout({
     <html data-theme="mytheme" lang="en">
       <body className="font-main">
         <div className="navbar bg-base-100">
-          <div className="flex-none">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-              className="size-6 ml-4"
-            >
-              <path
-                fillRule="evenodd"
-                d="M6.75 2.25A.75.75 0 0 1 7.5 3v1.5h9V3A.75.75 0 0 1 18 3v1.5h.75a3 3 0 0 1 3 3v11.25a3 3 0 0 1-3 3H5.25a3 3 0 0 1-3-3V7.5a3 3 0 0 1 3-3H6V3a.75.75 0 0 1 .75-.75Zm13.5 9a1.5 1.5 0 0 0-1.5-1.5H5.25a1.5 1.5 0 0 0-1.5 1.5v7.5a1.5 1.5 0 0 0 1.5 1.5h13.5a1.5 1.5 0 0 0 1.5-1.5v-7.5Z"
-                clipRule="evenodd"
-              />
-            </svg>
-          </div>
+          <div className="flex-none"></div>
           <div className="flex-1">
-            <a className="btn btn-ghost text-2xl text-primary">
-              SmartClass Scheduler
-            </a>
-          </div> 
-          <div className="flex-none">
+            <Link href="/" legacyBehavior passHref>
+              <a className="btn btn-ghost text-2xl text-primary flex items-center">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  className="size-7 text-black"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M6.75 2.25A.75.75 0 0 1 7.5 3v1.5h9V3A.75.75 0 0 1 18 3v1.5h.75a3 3 0 0 1 3 3v11.25a3 3 0 0 1-3 3H5.25a3 3 0 0 1-3-3V7.5a3 3 0 0 1 3-3H6V3a.75.75 0 0 1 .75-.75Zm13.5 9a1.5 1.5 0 0 0-1.5-1.5H5.25a1.5 1.5 0 0 0-1.5 1.5v7.5a1.5 1.5 0 0 0 1.5 1.5h13.5a1.5 1.5 0 0 0 1.5-1.5v-7.5Z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                SmartClass Scheduler
+              </a>
+            </Link>
+          </div>
+          {/* <div className="flex-none">
             <button className="btn btn-square btn-ghost">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -55,12 +57,12 @@ export default function RootLayout({
                 ></path>
               </svg>
             </button>
-          </div>
+          </div> */}
         </div>
         {children}
-        <footer className="bg-secondary text-neutral font-main h-12 flex justify-left items-center pl-3">
+        {/* <footer className="bg-secondary text-neutral font-main h-12 flex justify-left items-center pl-3">
           Created by: Brennan Humphrey
-        </footer>
+        </footer> */}
       </body>
     </html>
   );

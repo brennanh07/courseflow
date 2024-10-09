@@ -60,7 +60,7 @@ export default function PreferencesInputSection({
   };
 
   return (
-    <div className="flex space-x-20 w-full max-w-8xl p-8 bg-neutral shadow-lg rounded-xl text-center my-8 px">
+    <div className="flex space-x-20 w-100 max-w-8xl p-8 bg-neutral shadow-lg rounded-xl text-center my-8">
       <div className="flex flex-col space-y-4">
         {/* Preferences Header */}
         <h1 className="font-main text-5xl font-extrabold mb-6 text-primary">

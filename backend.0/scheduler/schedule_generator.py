@@ -43,10 +43,10 @@ class ScheduleGenerator:
         heap = []
         thread = threading.Thread(target=self._dfs, args=(0, {}, [], heap))
         thread.start()
-        thread.join(timeout=120) # Timeout after 2 minutes
+        thread.join(timeout=90) # Timeout after 1 minute 30 seconds
         if thread.is_alive():
             print("Schedule generation timed out")
-            return []
+            return ["timeout"]
 
         return [
             (element.score, element.schedule) for element in sorted(heap)

@@ -1,6 +1,6 @@
 "use client";
 import { Metadata } from "next";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import CourseInputSection from "./CourseInputSection";
 import BreaksInputSection from "./BreaksInputSection";
 import PreferencesInputSection from "./PreferencesInputSection";
@@ -78,12 +78,27 @@ export default function Home() {
   const [currentScheduleIndex, setCurrentScheduleIndex] = useState<number>(0);
   const [isCRNModalOpen, setIsCRNModalOpen] = useState<boolean>(false);
   const [copiedCRN, setCopiedCRN] = useState<string | null>(null);
+  const [direction, setDirection] = useState<"left" | "right" | null>(null);
+  const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
+
+  const formRefs = [
+    useRef<HTMLDivElement>(null), // Course Input Section
+    useRef<HTMLDivElement>(null), // Breaks Input Section
+    useRef<HTMLDivElement>(null), // Preferences Input Section
+  ];
+
+  // useEffect(() => {
+  //   setErrorMessage("");
+  //   setIsTimeout(false);
+  // }, [step]);
 
   const handleNext = () => {
+    setDirection("left"); // Animation direction
     setStep(step + 1);
   };
 
   const handlePrevious = () => {
+    setDirection("right"); // Animation direction
     setStep(step - 1);
   };
 
@@ -170,6 +185,14 @@ export default function Home() {
         console.log("API Response Data:", data);
 
         if (data.schedules.length === 0) {
+          setErrorMessage(
+            "No schedules found. Please remove one or more breaks."
+          );
+          setIsLoading(false);
+          return;
+        }
+
+        if (data.schedules[0] === "timeout") {
           setIsTimeout(true);
           setIsLoading(false);
           return;
@@ -279,6 +302,29 @@ export default function Home() {
     }));
   };
 
+  useEffect(() => {
+    const updateSize = () => {
+      const currentForm = formRefs[step - 1].current;
+      if (currentForm) {
+        void currentForm.offsetWidth; // Trigger a reflow to get the updated width
+
+        setContainerSize({
+          width: currentForm.offsetWidth + 20,
+          height: currentForm.offsetHeight + 20,
+        });
+      }
+    };
+
+    // Use requestAnimationFrame for smoother transitions
+    requestAnimationFrame(() => {
+      updateSize();
+    });
+
+    window.addEventListener("resize", updateSize);
+
+    return () => window.removeEventListener("resize", updateSize);
+  }, [step, formRefs]);
+
   return (
     <div
       className="flex flex-col items-center bg-cover bg-center bg-no-repeat bg-slate-200 min-h-screen"
@@ -317,36 +363,52 @@ export default function Home() {
         )}
 
         {/* Input Sections */}
-        <div className="flex flex-col items-center justify-center text-center">
+        <div
+          className="flex flex-col items-center justify-center text-center relative overflow-hidden"
+          style={{
+            width: `${containerSize.width}px`,
+            height: `${containerSize.height}px`,
+            transition: "height 0.3s ease-out",
+          }}
+        >
           {/* Step 1 - Course Input */}
           <div
-            className={`transition-opacity duration-500 ${
-              step === 1 ? "opacity-100" : "opacity-0"
+            ref={formRefs[0]} // Reference to the Course Input Section
+            className={`absolute transition-all duration-300 ease-out ${
+              step === 1
+                ? "opacity-100 translate-x-0"
+                : step < 1
+                ? "opacity-0 translate-x-full"
+                : "opacity-0 -translate-x-full"
             }`}
-            style={{ display: step === 1 ? "block" : "none" }}
           >
             <CourseInputSection courses={courses} setCourses={setCourses} />
           </div>
 
           {/* Step 2 - Breaks Input */}
           <div
-            className={`transition-opacity duration-500 ${
-              step === 2 ? "opacity-100" : "opacity-0"
+            ref={formRefs[1]} // Reference to the Breaks Input Section
+            className={`absolute transition-all duration-300 ease-out ${
+              step === 2
+                ? "opacity-100 translate-x-0"
+                : step < 2
+                ? "opacity-0 translate-x-full"
+                : "opacity-0 -translate-x-full"
             }`}
-            style={{ display: step === 2 ? "block" : "none" }}
           >
             <BreaksInputSection breaks={breaks} setBreaks={setBreaks} />
           </div>
 
           {/* Step 3 - Preferences Input */}
           <div
-            className={`transition-opacity duration-500 ${
-              step === 3 ? "opacity-100" : "opacity-0"
+            ref={formRefs[2]} // Reference to the Preferences Input Section
+            className={`absolute transition-all duration-300 ease-out ${
+              step === 3
+                ? "opacity-100 translate-x-0"
+                : step < 3
+                ? "opacity-0 translate-x-full"
+                : "opacity-0 -translate-x-full"
             }`}
-            style={{
-              display: step === 3 ? "block" : "none",
-              marginLeft: "1rem",
-            }}
           >
             <PreferencesInputSection
               preferences={preferences}
@@ -396,6 +458,11 @@ export default function Home() {
           <span className="text-lg font-main text-red-500">
             Too many possible schedules. Please add breaks.
           </span>
+        </div>
+      )}
+      {errorMessage && (
+        <div className="flex justify-center">
+          <span className="text-lg font-main text-red-500">{errorMessage}</span>
         </div>
       )}
 
@@ -489,6 +556,17 @@ export default function Home() {
             </button>
           </div>
         </div>
+      )}
+
+      {/* Steps Indicator UI*/}
+      {step !== 4 && (
+        <ul className="steps w-1/2 mb-5 font-main font-bold">
+          <li className={`step ${step >= 1 ? "step-primary" : ""}`}>Courses</li>
+          <li className={`step ${step >= 2 ? "step-primary" : ""}`}>Breaks</li>
+          <li className={`step ${step >= 3 ? "step-primary" : ""}`}>
+            Preferences
+          </li>
+        </ul>
       )}
 
       {/* Generate Schedules Button at the Bottom */}
