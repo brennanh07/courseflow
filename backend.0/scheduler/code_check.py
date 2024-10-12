@@ -192,10 +192,12 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+from django.contrib import admin
 from django.urls import path, include
 
 urlpatterns = [
-    path('class_scheduler/', include('scheduler.urls')),
+    path('admin/', admin.site.urls),
+    path('', include('scheduler.urls')),
 ]
 
 
@@ -387,20 +389,28 @@ class ScheduleInputSerializer(serializers.Serializer):
     
 # urls.py
 from django.urls import path, include
-# from rest_framework import DefaultRouter
-from . import views
-from scheduler.views import (
-    SubjectViewSet, ProfessorViewSet, SectionViewSet, SectionTimeViewSet, UserViewSet, PreferenceViewSet, 
-    WeightViewSet, ScheduleViewSet, ScheduleLogViewSet, GenerateScheduleView
+from rest_framework.routers import DefaultRouter
+from .views import (
+    SubjectViewSet, ProfessorViewSet, SectionViewSet, SectionTimeViewSet, 
+    UserViewSet, PreferenceViewSet, WeightViewSet, ScheduleViewSet, 
+    ScheduleLogViewSet, GenerateScheduleView
 )
 
-
-# router = DefaultRouter()
-# router.register(r'subjects', SubjectViewSet)
-
+# This is the router for the API
+router = DefaultRouter()
+router.register(r'subjects', SubjectViewSet)
+router.register(r'professors', ProfessorViewSet)
+router.register(r'sections', SectionViewSet)
+router.register(r'section-times', SectionTimeViewSet)
+router.register(r'users', UserViewSet)
+router.register(r'preferences', PreferenceViewSet)
+router.register(r'weights', WeightViewSet)
+router.register(r'schedules', ScheduleViewSet)
+router.register(r'schedule-logs', ScheduleLogViewSet)
 
 urlpatterns = [
-    path('generate-schedules/', GenerateScheduleView.as_view(), name='generate-schedules'),
+    path('api/v1/', include(router.urls)), # this is the root URL
+    path('api/v1/generate-schedules/', GenerateScheduleView.as_view(), name='generate-schedules'), # this is the endpoint for generating schedules
 ]
 
 # views.py
@@ -411,14 +421,19 @@ from rest_framework.permissions import AllowAny
 from scheduler.models import Subject, Professor, Section, SectionTime, User, Preference, Weight, Schedule, ScheduleLog
 from scheduler.serializers import (
     SubjectSerializer, ProfessorSerializer, SectionSerializer, SectionTimeSerializer, UserSerializer, PreferenceSerializer, 
-    WeightSerializer, ScheduleSerializer, ScheduleLogSerializer, ScheduleInputSerializer, BreakSerializer
+    WeightSerializer, ScheduleSerializer, ScheduleLogSerializer, ScheduleInputSerializer
 )
 
 from django.http import JsonResponse
 from main import process_schedules
 from logging_config import loggers
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
 
 logger = loggers['views']
+
+class BaseViewSet(viewsets.ModelViewSet):
+    permission_classes = [AllowAny]
 
 class SubjectViewSet(viewsets.ModelViewSet):
     queryset = Subject.objects.all()
@@ -456,10 +471,11 @@ class ScheduleLogViewSet(viewsets.ModelViewSet):
     queryset = ScheduleLog.objects.all()
     serializer_class = ScheduleLogSerializer
     
+@method_decorator(csrf_exempt, name='dispatch')
 class GenerateScheduleView(APIView):
     permission_classes = [AllowAny]
     
-    def post(self, request):
+    def post(self, request, *args, **kwargs):
         logger.info(f"Received schedule generation request: {request.data}")
         serializer = ScheduleInputSerializer(data=request.data)
         
@@ -688,132 +704,6 @@ from functools import lru_cache
 # Setup logging
 logging.basicConfig(level=logging.DEBUG, filename='scheduler.log', filemode='w')
 
-# class ScheduleScorer:
-#     def __init__(self, preferences):
-#         self.preferences = preferences
-#         self.preferred_days = set(preferences['preferred_days'])
-#         self.preferred_time = preferences['preferred_time']
-#         self.day_weight = preferences['day_weight']
-#         self.time_weight = preferences['time_weight']
-        
-#     def score_schedule(self, schedule):
-#         """
-#         Score an entire schedule based on the user preferences.
-        
-#         Args:
-#             schedule (list): List of SectionTime objects in the schedule
-            
-#         Returns:
-#             float: Combined score of the schedule
-#         """
-#         grouped_sections = self.group_section_times_by_section(schedule) # Group SectionTime objects by Section objects
-        
-#         total_score = sum(self.score_section(section, section_times) for section, section_times in grouped_sections.items())
-        
-#         logging.debug(f"Schedule: {schedule}, Score: {total_score}")
-        
-#         return total_score
-    
-#     def group_section_times_by_section(self, section_times):
-        
-#         grouped_sections = defaultdict(list)
-#         for section_time in section_times:
-#             grouped_sections[section_time.crn].append(section_time)
-#         return grouped_sections
-    
-#     def score_section(self, section, section_times):
-#         """
-#         """
-#         total_score = sum(self.score_section_time(section_time) for section_time in section_times)
-        
-#         return total_score / len(section_times) if section_times else 0 # Average score across all SectionTime objects
-    
-#     def score_section_time(self, section_time):
-#         """
-#         """
-#         # Handle edge case of "00:00:00" (online or arranged courses)
-#         if section_time.begin_time == datetime.time(0, 0):
-#             day_score = 1
-#             time_score = 1
-#             matching_days = "N/A"
-            
-#         else:
-#             matching_days = set(section_time.days).intersection(self.preferred_days)
-#             day_score = len(matching_days) / len(section_time.days)
-#             time_score = self.score_time(section_time.begin_time)
-        
-#         return (day_score * self.day_weight) + (time_score * self.time_weight)
-    
-#     @lru_cache(maxsize=1440)
-#     def score_time(self, begin_time):
-#         """
-#         """
-#         time_ranges = {
-#             'morning': (datetime.time(8, 0), datetime.time(12, 0)),  # 8:00 AM to 12:00 PM
-#             'afternoon': (datetime.time(12, 0), datetime.time(16, 0)),  # 12:00 PM to 4:00 PM
-#             'evening': (datetime.time(16, 0), datetime.time(20, 0)),  # 4:00 PM to 8:00 PM
-#         }
-        
-#         if self.preferred_time not in time_ranges:
-#             return None
-        
-#         preferred_start, preferred_end = time_ranges[self.preferred_time]
-        
-#         # Convert times to datetime on an arbitrary date for comparison
-#         arbitrary_date = datetime.date(1, 1, 1)
-#         begin_dt = datetime.datetime.combine(arbitrary_date, begin_time)
-#         preferred_start_dt = datetime.datetime.combine(arbitrary_date, preferred_start)
-#         preferred_end_dt = datetime.datetime.combine(arbitrary_date, preferred_end)
-        
-        
-#         # Calculate the score based on the proximity to the preferred time
-#         if begin_dt < preferred_start_dt:
-#         # Calculate how far the class start time is before the preferred start time
-#             score = max(0, 1 - (preferred_start_dt - begin_dt).seconds / 3600)
-        
-#         elif preferred_start_dt <= begin_dt <= preferred_end_dt:
-#         # Perfect match if the class start time is within the preferred range
-#             score = 1
-        
-#         else:
-#         # Calculate how far the class start time is after the preferred end time
-#             score = max(0, 1 - (begin_dt - preferred_end_dt).seconds / 3600)
-        
-#         return score
-    
-    # @lru_cache(maxsize=128)
-    # def score_time(self, begin_time, end_time):
-    #     preferred_time = self.preferences['preferred_time']
-        
-    #     # Convert times to datetime on an arbitrary date for comparison
-    #     arbitrary_date = datetime.date(1, 1, 1)
-    #     begin_dt = datetime.datetime.combine(arbitrary_date, begin_time)
-    #     end_dt = datetime.datetime.combine(arbitrary_date, end_time)
-        
-    #     begin_score = self.continuous_time_score(begin_dt, preferred_time)
-    #     end_score = self.continuous_time_score(end_dt, preferred_time)
-        
-    #     return (begin_score + end_score) / 2
-    
-    # def continuous_time_score(self, time, preferred_time):
-    #     hours = time.hour + time.minute / 60
-        
-    #     # Define the center of each time range
-    #     time_centers = {
-    #         'morning': 8,  # 10:00 AM
-    #         'afternoon': 14,  # 2:00 PM
-    #         'evening': 18,  # 6:00 PM
-    #     }
-        
-    #     center = time_centers.get(preferred_time, 12)  # Default to noon if invalid preference
-        
-    #     # Calculate score based on distance from preferred time center
-    #     distance = abs(hours - center)
-    #     max_distance = 12  # Maximum possible distance in a 24-hour clock
-        
-    #     return max(0, 1 - distance / max_distance)
-    
-
 class ScheduleScorer:
     def __init__(self, preferences):
         self.preferences = preferences
@@ -859,6 +749,7 @@ class ScheduleScorer:
         
         return score
 
+
 # schedule_formatter.py
 from collections import defaultdict
 from logging_config import loggers
@@ -874,90 +765,6 @@ class ScheduleFormatter:
             date_format (str): The format string to use for displaying dates and times
         """
         self.date_format = date_format
-        
-    # def format_schedule(self, schedule):
-    #     """
-    #     Formats a schedule into a more readable string format.
-        
-    #     Args:
-    #         schedule (list): A list of SectionTime objects representing a schedule
-            
-    #     Returns:
-    #         dict: A formatted dictionary representation of the schedule including days and CRNs
-    #     """
-    #     day_schedule = defaultdict(list)
-    #     crn_dict = {}
-        
-    #     for section_time in schedule[1]:
-    #         logger.info(f"Processing section_time: {section_time}")
-    #         logger.info(f"section_time.days type: {type(section_time.days)}")
-    #         logger.info(f"section_time.days value: {section_time.days}")
-            
-    #         if isinstance(section_time.days, float):
-    #             logger.warning(f"Unexpected float value for days: {section_time.days}")
-    #             day_name = str(int(section_time.days))  # Convert float to string
-    #         elif isinstance(section_time.days, str):
-    #             day_name = section_time.days.capitalize()
-    #         else:
-    #             logger.error(f"Unexpected type for days: {type(section_time.days)}")
-    #             day_name = "Unknown"
-            
-    #         try:
-    #             class_info = f"{section_time.crn.course}: {section_time.begin_time.strftime(self.date_format)} - {section_time.end_time.strftime(self.date_format)}"
-    #         except AttributeError as e:
-    #             logger.error(f"Error formatting class info: {e}")
-    #             class_info = "Error: Unable to format class info"
-            
-    #         day_schedule[day_name].append((section_time.begin_time, class_info))
-            
-    #         if hasattr(section_time.crn, 'course'):
-    #             if section_time.crn.course not in crn_dict:
-    #                 crn_dict[section_time.crn.course] = section_time.crn.crn
-    #         else:
-    #             logger.error(f"section_time.crn does not have 'course' attribute: {section_time.crn}")
-
-    #     # Sort classes by start time    
-    #     ordered_schedule = {} 
-    #     for day in ["M", "T", "W", "R", "F", "S", "U"]:
-    #         if day in day_schedule:
-    #             ordered_schedule[day] = [class_info for _, class_info in sorted(day_schedule[day])]
-    #         elif "Online" in day_schedule or "Arr" in day_schedule:
-    #             ordered_schedule["Online/ARR"] = [class_info for _, class_info in sorted(day_schedule.get("Online", []) + day_schedule.get("Arr", []))]
-    #         else:
-    #             ordered_schedule[day] = []
-            
-    #     return {
-    #         "days": ordered_schedule,
-    #         "crns": crn_dict
-    #     }
-        
-    # def print_ranked_schedules(self, top_schedules, top_n=10):
-    #     """
-    #     Formats the top N schedules as a list of lists where each list contains strings representing each line of the schedule.
-
-    #     Args:
-    #         top_schedules (list): List of top N schedules to format.
-    #         top_n (int): Number of top schedules to include in the output.
-
-    #     Returns:
-    #         list: A list of formatted schedules as dictionaries with names, days, and CRNs.
-    #     """
-    #     formatted_schedules_list = []
-        
-    #     for i, schedule in enumerate(top_schedules[:top_n], 1):
-    #         try:
-    #             formatted_schedule_data = self.format_schedule(schedule)
-    #             formatted_schedule = {
-    #                 "name": f"Schedule {i}",
-    #                 "days": formatted_schedule_data["days"],
-    #                 "crns": formatted_schedule_data["crns"]
-    #             }
-    #             formatted_schedules_list.append(formatted_schedule)
-    #         except Exception as e:
-    #             logger.error(f"Error formatting schedule {i}: {e}")
-        
-    #     return formatted_schedules_list
-        
         
     def format_schedule(self, schedule):
         day_schedule = defaultdict(list)
