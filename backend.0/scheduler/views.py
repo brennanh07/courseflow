@@ -5,14 +5,19 @@ from rest_framework.permissions import AllowAny
 from scheduler.models import Subject, Professor, Section, SectionTime, User, Preference, Weight, Schedule, ScheduleLog
 from scheduler.serializers import (
     SubjectSerializer, ProfessorSerializer, SectionSerializer, SectionTimeSerializer, UserSerializer, PreferenceSerializer, 
-    WeightSerializer, ScheduleSerializer, ScheduleLogSerializer, ScheduleInputSerializer, BreakSerializer
+    WeightSerializer, ScheduleSerializer, ScheduleLogSerializer, ScheduleInputSerializer
 )
 
 from django.http import JsonResponse
 from main import process_schedules
 from logging_config import loggers
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
 
 logger = loggers['views']
+
+class BaseViewSet(viewsets.ModelViewSet):
+    permission_classes = [AllowAny]
 
 class SubjectViewSet(viewsets.ModelViewSet):
     queryset = Subject.objects.all()
@@ -50,10 +55,11 @@ class ScheduleLogViewSet(viewsets.ModelViewSet):
     queryset = ScheduleLog.objects.all()
     serializer_class = ScheduleLogSerializer
     
+@method_decorator(csrf_exempt, name='dispatch')
 class GenerateScheduleView(APIView):
     permission_classes = [AllowAny]
     
-    def post(self, request):
+    def post(self, request, *args, **kwargs):
         logger.info(f"Received schedule generation request: {request.data}")
         serializer = ScheduleInputSerializer(data=request.data)
         

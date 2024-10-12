@@ -1,6 +1,6 @@
 "use client";
 import { Metadata } from "next";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import CourseInputSection from "./CourseInputSection";
 import BreaksInputSection from "./BreaksInputSection";
 import PreferencesInputSection from "./PreferencesInputSection";
@@ -78,14 +78,6 @@ export default function Home() {
   const [currentScheduleIndex, setCurrentScheduleIndex] = useState<number>(0);
   const [isCRNModalOpen, setIsCRNModalOpen] = useState<boolean>(false);
   const [copiedCRN, setCopiedCRN] = useState<string | null>(null);
-  const [direction, setDirection] = useState<"left" | "right" | null>(null);
-  const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
-
-  const formRefs = [
-    useRef<HTMLDivElement>(null), // Course Input Section
-    useRef<HTMLDivElement>(null), // Breaks Input Section
-    useRef<HTMLDivElement>(null), // Preferences Input Section
-  ];
 
   // useEffect(() => {
   //   setErrorMessage("");
@@ -93,12 +85,10 @@ export default function Home() {
   // }, [step]);
 
   const handleNext = () => {
-    setDirection("left"); // Animation direction
     setStep(step + 1);
   };
 
   const handlePrevious = () => {
-    setDirection("right"); // Animation direction
     setStep(step - 1);
   };
 
@@ -172,7 +162,7 @@ export default function Home() {
 
     console.log("Payload:", payload);
 
-    fetch("http://127.0.0.1:8000/class_scheduler/generate-schedules/", {
+    fetch("http://127.0.0.1:8000/api/v1/generate-schedules/", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -302,29 +292,6 @@ export default function Home() {
     }));
   };
 
-  useEffect(() => {
-    const updateSize = () => {
-      const currentForm = formRefs[step - 1].current;
-      if (currentForm) {
-        void currentForm.offsetWidth; // Trigger a reflow to get the updated width
-
-        setContainerSize({
-          width: currentForm.offsetWidth + 20,
-          height: currentForm.offsetHeight + 20,
-        });
-      }
-    };
-
-    // Use requestAnimationFrame for smoother transitions
-    requestAnimationFrame(() => {
-      updateSize();
-    });
-
-    window.addEventListener("resize", updateSize);
-
-    return () => window.removeEventListener("resize", updateSize);
-  }, [step, formRefs]);
-
   return (
     <div
       className="flex flex-col items-center bg-cover bg-center bg-no-repeat bg-slate-200 min-h-screen"
@@ -363,52 +330,36 @@ export default function Home() {
         )}
 
         {/* Input Sections */}
-        <div
-          className="flex flex-col items-center justify-center text-center relative overflow-hidden"
-          style={{
-            width: `${containerSize.width}px`,
-            height: `${containerSize.height}px`,
-            transition: "height 0.3s ease-out",
-          }}
-        >
+        <div className="flex flex-col items-center justify-center text-center">
           {/* Step 1 - Course Input */}
           <div
-            ref={formRefs[0]} // Reference to the Course Input Section
-            className={`absolute transition-all duration-300 ease-out ${
-              step === 1
-                ? "opacity-100 translate-x-0"
-                : step < 1
-                ? "opacity-0 translate-x-full"
-                : "opacity-0 -translate-x-full"
+            className={`transition-opacity duration-500 ${
+              step === 1 ? "opacity-100" : "opacity-0"
             }`}
+            style={{ display: step === 1 ? "block" : "none" }}
           >
             <CourseInputSection courses={courses} setCourses={setCourses} />
           </div>
 
           {/* Step 2 - Breaks Input */}
           <div
-            ref={formRefs[1]} // Reference to the Breaks Input Section
-            className={`absolute transition-all duration-300 ease-out ${
-              step === 2
-                ? "opacity-100 translate-x-0"
-                : step < 2
-                ? "opacity-0 translate-x-full"
-                : "opacity-0 -translate-x-full"
+            className={`transition-opacity duration-500 ${
+              step === 2 ? "opacity-100" : "opacity-0"
             }`}
+            style={{ display: step === 2 ? "block" : "none" }}
           >
             <BreaksInputSection breaks={breaks} setBreaks={setBreaks} />
           </div>
 
           {/* Step 3 - Preferences Input */}
           <div
-            ref={formRefs[2]} // Reference to the Preferences Input Section
-            className={`absolute transition-all duration-300 ease-out ${
-              step === 3
-                ? "opacity-100 translate-x-0"
-                : step < 3
-                ? "opacity-0 translate-x-full"
-                : "opacity-0 -translate-x-full"
+            className={`transition-opacity duration-500 ${
+              step === 3 ? "opacity-100" : "opacity-0"
             }`}
+            style={{
+              display: step === 3 ? "block" : "none",
+              marginLeft: "1rem",
+            }}
           >
             <PreferencesInputSection
               preferences={preferences}
