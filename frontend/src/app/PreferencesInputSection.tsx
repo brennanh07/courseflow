@@ -1,5 +1,8 @@
 import React, { ChangeEvent, useEffect } from "react";
 
+/**
+ * Represents user preferences for scheduling.
+ */
 interface Preferences {
   days: string[];
   timesOfDay: string;
@@ -7,15 +10,25 @@ interface Preferences {
   timeWeight: number;
 }
 
+/**
+ * Props for the PreferencesInputSection component.
+ */
 interface PreferencesInputSectionProps {
   preferences: Preferences;
   setPreferences: React.Dispatch<React.SetStateAction<Preferences>>;
 }
 
+/**
+ * PreferencesInputSection component allows users to input and manage scheduling preferences.
+ *
+ * @param {PreferencesInputSectionProps} props - The component props
+ * @returns {JSX.Element} The rendered PreferencesInputSection component
+ */
 export default function PreferencesInputSection({
   preferences,
   setPreferences,
 }: PreferencesInputSectionProps) {
+  // Set default time of day preference if not set
   useEffect(() => {
     if (!preferences.timesOfDay) {
       setPreferences((prev) => ({
@@ -24,6 +37,13 @@ export default function PreferencesInputSection({
       }));
     }
   }, [preferences.timesOfDay, setPreferences]);
+
+  /**
+   * Handles changes to preferred class days.
+   *
+   * @param {string} day - The day being toggled
+   * @param {boolean} checked - Whether the day is being selected or deselected
+   */
   const handleDayChange = (day: string, checked: boolean) => {
     const updatedDays = checked
       ? [...preferences.days, day]
@@ -35,6 +55,11 @@ export default function PreferencesInputSection({
     }));
   };
 
+  /**
+   * Handles changes to preferred time of day.
+   *
+   * @param {ChangeEvent<HTMLSelectElement>} event - The change event from the select element
+   */
   const handleTimeChange = (event: ChangeEvent<HTMLSelectElement>) => {
     const selectedValue = event.target.value;
     console.log("Selected Time of Day:", selectedValue); // Debugging line
@@ -45,6 +70,11 @@ export default function PreferencesInputSection({
     }));
   };
 
+  /**
+   * Handles changes to the day preference weight.
+   *
+   * @param {number} weight - The new weight value
+   */
   const handleDayWeightChange = (weight: number) => {
     setPreferences((prev) => ({
       ...prev,
@@ -52,6 +82,11 @@ export default function PreferencesInputSection({
     }));
   };
 
+  /**
+   * Handles changes to the time preference weight.
+   *
+   * @param {number} weight - The new weight value
+   */
   const handleTimeWeightChange = (weight: number) => {
     setPreferences((prev) => ({
       ...prev,
@@ -68,6 +103,7 @@ export default function PreferencesInputSection({
         </h1>
 
         <div className="flex flex-col gap-y-4 border bg-primary rounded-xl p-3.5">
+          {/* Class Days Preference */}
           <div className="flex flex-col gap-y-2 items-center">
             <h2 className="text-3xl text-accent">Class Days</h2>
             <p className="text-sm mt-2 text-secondary">
@@ -88,6 +124,7 @@ export default function PreferencesInputSection({
             </div>
           </div>
 
+          {/* Time of Day Preference */}
           <div className="flex flex-col gap-y-2">
             <h2 className="text-3xl text-center text-accent">Time of Day</h2>
             <p className="text-sm mt-2 text-secondary">
@@ -121,6 +158,7 @@ export default function PreferencesInputSection({
         </div>
       </div>
 
+      {/* Weighting Section */}
       <div className="flex flex-col space-y-4">
         <h1 className="font-main text-5xl font-extrabold mb-6 text-primary">
           Weighting
@@ -133,6 +171,7 @@ export default function PreferencesInputSection({
           <p className="text-secondary text-center">
             If you want a preference to have no effect, set it to 0.0
           </p>
+          {/* Class Days Weight */}
           <div className="flex flex-col gap-y-2 items-center">
             <h2 className="text-accent text-3xl my-2">Class Days Weight</h2>
             <input
@@ -147,6 +186,7 @@ export default function PreferencesInputSection({
               className="input w-full max-w-xs text-center text-xl border-none focus:outline-none focus:ring-4 focus:ring-secondary"
             />
           </div>
+          {/* Time of Day Weight */}
           <div className="flex flex-col gap-y-2 items-center my-2">
             <h2 className="text-accent text-3xl my-2">Time of Day Weight</h2>
             <input

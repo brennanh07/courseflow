@@ -1,5 +1,4 @@
 "use client";
-import { Metadata } from "next";
 import { useState, useEffect } from "react";
 import CourseInputSection from "./CourseInputSection";
 import BreaksInputSection from "./BreaksInputSection";
@@ -9,17 +8,10 @@ import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import momentPlugin from "@fullcalendar/moment";
-import {
-  Description,
-  Dialog,
-  DialogPanel,
-  DialogTitle,
-  Button,
-} from "@headlessui/react";
-import MyModal from "./EventInfoModal";
-import { all } from "axios";
+import { Button, Dialog, DialogPanel, DialogTitle } from "@headlessui/react";
 import "./globals.css";
 
+// Define interfaces for data structures
 interface Course {
   subject: string;
   courseNumber: string;
@@ -42,16 +34,10 @@ interface ClassEvent {
   start: Date | string;
   end: Date | string;
   crn: string;
-  // crn: string;
-  // location: string;
-  // instructor: string;
 }
 
-// export const metadata: Metadata = {
-//   title: "Home Page",
-// };
-
 export default function Home() {
+  // State variables
   const [step, setStep] = useState<number>(1);
   const [courses, setCourses] = useState<Course[]>([
     { subject: "", courseNumber: "" },
@@ -70,7 +56,6 @@ export default function Home() {
   const [isGenerateButtonPressed, setIsGenerateButtonPressed] =
     useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
-
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [selectedEvent, setSelectedEvent] = useState<ClassEvent | null>(null);
   const [isTimeout, setIsTimeout] = useState<boolean>(false);
@@ -79,19 +64,11 @@ export default function Home() {
   const [isCRNModalOpen, setIsCRNModalOpen] = useState<boolean>(false);
   const [copiedCRN, setCopiedCRN] = useState<string | null>(null);
 
-  // useEffect(() => {
-  //   setErrorMessage("");
-  //   setIsTimeout(false);
-  // }, [step]);
+  // Navigation functions
+  const handleNext = () => setStep(step + 1);
+  const handlePrevious = () => setStep(step - 1);
 
-  const handleNext = () => {
-    setStep(step + 1);
-  };
-
-  const handlePrevious = () => {
-    setStep(step - 1);
-  };
-
+  // Time conversion functions
   function convertTo24Hour(time: string): string {
     const [timePart, period] = time.split(" ");
     let [hours, minutes] = timePart.split(":").map(Number);
@@ -126,12 +103,14 @@ export default function Home() {
     const minutes = date.getMinutes();
     const ampm = hours >= 12 ? "PM" : "AM";
     hours = hours % 12;
-    hours = hours ? hours : 12; // the hour '0' should be '12'
+    hours = hours ? hours : 12;
     const minutesStr = minutes < 10 ? "0" + minutes : minutes;
     return `${hours}:${minutesStr} ${ampm}`;
   }
 
+  // Function to handle schedule generation
   const handleGenerateSchedules = () => {
+    // Validation check for weights
     if (preferences.dayWeight + preferences.timeWeight !== 1.0) {
       setErrorMessage("Day and Time Weights must add up to 1.0");
       return;
@@ -142,6 +121,7 @@ export default function Home() {
     setErrorMessage("");
     setIsTimeout(false);
 
+    // Format breaks for API request
     const formattedBreaks = breaks
       .filter((breakPeriod) => breakPeriod.startTime && breakPeriod.endTime)
       .map((breakPeriod) => ({
@@ -149,6 +129,7 @@ export default function Home() {
         end_time: convertTo24Hour(breakPeriod.endTime),
       }));
 
+    // Prepare payload for API request
     const payload = {
       courses: courses.map(
         (course) => `${course.subject}-${course.courseNumber}`
@@ -162,6 +143,7 @@ export default function Home() {
 
     console.log("Payload:", payload);
 
+    // Make API request to generate schedules
     fetch("http://127.0.0.1:8000/api/v1/generate-schedules/", {
       method: "POST",
       headers: {
@@ -169,7 +151,6 @@ export default function Home() {
       },
       body: JSON.stringify(payload),
     })
-      // testing with the first schedule returned only
       .then((response) => response.json())
       .then((data) => {
         console.log("API Response Data:", data);
@@ -188,16 +169,16 @@ export default function Home() {
           return;
         }
 
-        const allSchedules: ClassEvent[][] = []; // Initialize an empty array to store the schedules
+        // Process and format the received schedules
+        const allSchedules: ClassEvent[][] = [];
 
         data.schedules.forEach((schedule: any) => {
-          const scheduleEvents: ClassEvent[] = []; // Initialize an empty array to store the events
+          const scheduleEvents: ClassEvent[] = [];
           Object.keys(schedule.days).forEach((day) => {
-            const dayOfWeek = day as DayOfWeek; // Convert the day to a DayOfWeek type
+            const dayOfWeek = day as DayOfWeek;
             schedule.days[dayOfWeek].forEach((classInfo: string) => {
-              const [title, timeRange] = classInfo.split(": "); // Split the class info into title and time range
-              const [startTime, endTime] = timeRange.split(" - "); // Split the time range into start and end times
-              // Push the new event to the array
+              const [title, timeRange] = classInfo.split(": ");
+              const [startTime, endTime] = timeRange.split(" - ");
               scheduleEvents.push({
                 title,
                 start: convertToISODate(dayOfWeek, startTime),
@@ -206,7 +187,7 @@ export default function Home() {
               });
             });
           });
-          allSchedules.push(scheduleEvents); // Push the schedule to the array
+          allSchedules.push(scheduleEvents);
         });
 
         setSchedules(allSchedules);
@@ -222,20 +203,21 @@ export default function Home() {
       });
   };
 
+  // Functions to navigate between generated schedules
   const handleNextSchedule = () => {
-    const nextIndex = (currentScheduleIndex + 1) % schedules.length; // Calculate the next index based on the current index
-    setCurrentScheduleIndex(nextIndex); // Update the current index
-    setEvents(schedules[nextIndex]); // Update the events to the next schedule
+    const nextIndex = (currentScheduleIndex + 1) % schedules.length;
+    setCurrentScheduleIndex(nextIndex);
+    setEvents(schedules[nextIndex]);
   };
 
   const handlePreviousSchedule = () => {
-    // Calculate the previous index based on the current index by adding the length of the array to avoid negative values
     const previousIndex =
       (currentScheduleIndex - 1 + schedules.length) % schedules.length;
-    setCurrentScheduleIndex(previousIndex); // Update the current index
-    setEvents(schedules[previousIndex]); // Update the events to the previous schedule
+    setCurrentScheduleIndex(previousIndex);
+    setEvents(schedules[previousIndex]);
   };
 
+  // Function to handle calendar event clicks
   const handleEventClick = (info: any) => {
     setSelectedEvent({
       title: info.event.title,
@@ -246,21 +228,20 @@ export default function Home() {
     setIsModalOpen(true);
   };
 
-  // Function to handle the CRN button click
+  // Function to handle CRN button click
   const handleCRNButtonClick = () => {
     setIsCRNModalOpen(true);
   };
 
-  // Function to copy the CRN to the clipboard
+  // Function to copy CRN to clipboard
   const handleCopyCRN = (crn: string) => {
     navigator.clipboard.writeText(crn).then(() => {
-      // Copy the CRN to the clipboard
-      setCopiedCRN(crn); // Set the copied CRN
-      setTimeout(() => setCopiedCRN(null), 2000); // Reset after 2 seconds
+      setCopiedCRN(crn);
+      setTimeout(() => setCopiedCRN(null), 2000);
     });
   };
 
-  // Function to get the CRNs of the current schedule
+  // Function to get CRNs of the current schedule
   const getCurrentScheduleCRNs = () => {
     if (
       schedules.length === 0 ||
@@ -268,19 +249,19 @@ export default function Home() {
       currentScheduleIndex >= schedules.length
     ) {
       console.log("No schedules available or invalid index");
-      return []; // Return an empty array if there are no schedules or the index is invalid
+      return [];
     }
 
     const currentSchedule = schedules[currentScheduleIndex];
     if (!currentSchedule || !Array.isArray(currentSchedule)) {
       console.log("Current schedule is not an array");
-      return []; // Return an empty array if currentSchedule is not an array
+      return [];
     }
 
     const uniqueClassesAndCRNs = new Map();
 
     currentSchedule.forEach((event) => {
-      const className = event.title.split(": ")[0]; // Assuming the title format is "SUBJ-NUM: Class Name"
+      const className = event.title.split(": ")[0];
       if (!uniqueClassesAndCRNs.has(className)) {
         uniqueClassesAndCRNs.set(className, event.crn);
       }

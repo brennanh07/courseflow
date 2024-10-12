@@ -1,19 +1,38 @@
 import React from "react";
 
+/**
+ * Represents a break period with start and end times.
+ */
 interface BreakPeriod {
   startTime: string;
   endTime: string;
 }
 
+/**
+ * Props for the BreaksInputSection component.
+ */
 interface BreaksInputSectionProps {
   breaks: BreakPeriod[];
   setBreaks: React.Dispatch<React.SetStateAction<BreakPeriod[]>>;
 }
 
+/**
+ * BreaksInputSection component allows users to input and manage break periods.
+ *
+ * @param {BreaksInputSectionProps} props - The component props
+ * @returns {JSX.Element} The rendered BreaksInputSection component
+ */
 export default function BreaksInputSection({
   breaks,
   setBreaks,
 }: BreaksInputSectionProps) {
+  /**
+   * Handles changes to break period input fields.
+   *
+   * @param {number} index - The index of the break period being modified
+   * @param {"startTime" | "endTime"} field - The field being modified
+   * @param {string} value - The new value for the field
+   */
   const handleBreakChange = (
     index: number,
     field: "startTime" | "endTime",
@@ -24,12 +43,20 @@ export default function BreaksInputSection({
     setBreaks(newBreaks);
   };
 
+  /**
+   * Adds a new empty break period to the list.
+   */
   const addBreak = () => {
     if (breaks.length < 8) {
       setBreaks([...breaks, { startTime: "", endTime: "" }]);
     }
   };
 
+  /**
+   * Removes a break period from the list.
+   *
+   * @param {number} index - The index of the break period to remove
+   */
   const removeBreak = (index: number) => {
     const newBreaks = breaks.filter((_, i) => i !== index);
     setBreaks(newBreaks);
@@ -61,6 +88,7 @@ export default function BreaksInputSection({
                 className="flex justify-center items-center gap-x-4 ml-16"
                 key={index}
               >
+                {/* Start time select */}
                 <select
                   className="btn bg-accent font-main text-center border-none focus:outline-none focus:ring-2 focus:ring-white hover:bg-secondary hover:text-white focus:bg-secondary focus:text-white w-48 text-lg"
                   value={breakPeriod.startTime}
@@ -85,6 +113,7 @@ export default function BreaksInputSection({
                   ))}
                 </select>
                 <span className="text-neutral text-xl mx-2">to</span>
+                {/* End time select */}
                 <select
                   className="btn bg-accent font-main text-center border-none focus:outline-none focus:ring-2 focus:ring-white hover:bg-secondary hover:text-white focus:bg-secondary focus:text-white w-48 text-lg"
                   value={breakPeriod.endTime}
@@ -108,6 +137,7 @@ export default function BreaksInputSection({
                     </option>
                   ))}
                 </select>
+                {/* Remove Break Button */}
                 {breaks.length > 1 && index > 0 ? (
                   <button
                     onClick={() => removeBreak(index)}
@@ -182,6 +212,11 @@ export default function BreaksInputSection({
   );
 }
 
+/**
+ * Generates an array of time options for the time select dropdowns.
+ *
+ * @returns {string[]} An array of formatted time strings
+ */
 function generateTimeOptions() {
   const times = [];
   const startHour = 8; // 8 AM

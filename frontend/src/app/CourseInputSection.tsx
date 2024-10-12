@@ -1,20 +1,38 @@
 import React from "react";
-// import './globals.css';
 
+/**
+ * Represents a course with subject and course number.
+ */
 interface Course {
   subject: string;
   courseNumber: string;
 }
 
+/**
+ * Props for the CourseInputSection component.
+ */
 interface CourseInputSectionProps {
   courses: Course[];
   setCourses: React.Dispatch<React.SetStateAction<Course[]>>;
 }
 
+/**
+ * CourseInputSection component allows users to input and manage course information.
+ *
+ * @param {CourseInputSectionProps} props - The component props
+ * @returns {JSX.Element} The rendered CourseInputSection component
+ */
 export default function CourseInputSection({
   courses,
   setCourses,
 }: CourseInputSectionProps) {
+  /**
+   * Handles changes to course input fields.
+   *
+   * @param {number} index - The index of the course being modified
+   * @param {"subject" | "courseNumber"} field - The field being modified
+   * @param {string} value - The new value for the field
+   */
   const handleCourseChange = (
     index: number,
     field: "subject" | "courseNumber",
@@ -25,12 +43,20 @@ export default function CourseInputSection({
     setCourses(newCourses);
   };
 
+  /**
+   * Adds a new empty course to the list.
+   */
   const addCourse = () => {
     if (courses.length < 8) {
       setCourses([...courses, { subject: "", courseNumber: "" }]);
     }
   };
 
+  /**
+   * Removes a course from the list.
+   *
+   * @param {number} index - The index of the course to remove
+   */
   const removeCourse = (index: number) => {
     const newCourses = courses.filter((_, i) => i !== index);
     setCourses(newCourses);
@@ -66,6 +92,7 @@ export default function CourseInputSection({
                 key={index}
                 className="flex items-center justify-center gap-x-4 ml-16"
               >
+                {/* Subject input field */}
                 <input
                   type="text"
                   placeholder="Subject"
@@ -76,6 +103,7 @@ export default function CourseInputSection({
                   className="text-transform: uppercase font-main bg-accent text-lg input input-bordered w-48 text-center focus:outline-none focus:ring-2 focus:ring-secondary"
                 />
                 <span className="text-3xl text-neutral">-</span>
+                {/* Course number input field */}
                 <input
                   type="text"
                   placeholder="Course Number"
@@ -160,78 +188,3 @@ export default function CourseInputSection({
     </div>
   );
 }
-
-// New code to work off of
-// return (
-//   <div className="flex justify-center items-center flex-col my-8 px-4">
-//     <div className="w-full max-w-4xl p-8 bg-gray-100 shadow-lg rounded-lg text-center">
-//       <h1 className="font-main text-5xl font-extrabold mb-6 text-primary">
-//         Courses
-//       </h1>
-
-//       <div className="space-y-4 mb-8">
-//         <h4 className="font-main text-lg text-gray-700">
-//           Enter the subject and course number for each class you are taking.
-//         </h4>
-//         <p className="text-gray-500 text-sm">
-//           Example: <span className="font-bold">MATH-1225</span>
-//         </p>
-//         <h4 className="font-main text-lg text-gray-700">
-//           IF A COURSE HAS BOTH A LECTURE AND LAB:
-//         </h4>
-//         <p className="text-gray-500 text-sm">
-//           Please specify LAB by adding a "B" to the end of the course number.
-//         </p>
-//         <p className="text-gray-500 text-sm">
-//           Example: <span className="font-bold">PHYS-2305 (Lecture)</span> |{" "}
-//           <span className="font-bold">PHYS-2305B (Lab)</span>
-//         </p>
-//       </div>
-
-//       <div className="border bg-white shadow rounded-xl w-full max-w-xl mx-auto p-6 space-y-4">
-//         {courses.map((course, index) => (
-//           <div className="flex items-center justify-center space-x-4" key={index}>
-//             <input
-//               type="text"
-//               placeholder="Subject"
-//               value={course.subject}
-//               onChange={(e) =>
-//                 handleCourseChange(index, "subject", e.target.value)
-//               }
-//               className="text-transform: uppercase font-main bg-gray-200 text-lg input input-bordered w-40 text-center focus:outline-none focus:ring-2 focus:ring-primary"
-//             />
-//             <span className="text-xl text-gray-600">-</span>
-//             <input
-//               type="text"
-//               placeholder="Course Number"
-//               value={course.courseNumber}
-//               onChange={(e) =>
-//                 handleCourseChange(index, "courseNumber", e.target.value)
-//               }
-//               className="font-main bg-gray-200 text-lg input input-bordered w-40 text-center focus:outline-none focus:ring-2 focus:ring-primary"
-//             />
-//             {courses.length > 1 && index > 0 && (
-//               <button
-//                 className="font-main btn bg-red-500 text-white text-xl px-3 py-1 rounded hover:bg-red-600"
-//                 onClick={() => removeCourse(index)}
-//               >
-//                 -
-//               </button>
-//             )}
-//           </div>
-//         ))}
-//         {courses.length < 8 && (
-//           <div className="flex justify-center">
-//             <button
-//               className="font-main bg-green-500 text-white text-lg px-4 py-2 rounded hover:bg-green-600"
-//               onClick={addCourse}
-//             >
-//               Add Course
-//             </button>
-//           </div>
-//         )}
-//       </div>
-//     </div>
-//   </div>
-// );
-// }
