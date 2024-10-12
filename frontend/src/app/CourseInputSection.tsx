@@ -1,37 +1,49 @@
-import React from "react";
+// Import necessary dependencies and types
+import React, { useState, useEffect } from "react";
+import subjectData from "./subject_data.json" assert { type: "json" };
 
-/**
- * Represents a course with subject and course number.
- */
+// Define types for the subject data and course structure
+interface SubjectData {
+  [key: string]: string[];
+}
+
 interface Course {
   subject: string;
   courseNumber: string;
 }
 
-/**
- * Props for the CourseInputSection component.
- */
+// Define props for the CourseInputSection component
 interface CourseInputSectionProps {
   courses: Course[];
   setCourses: React.Dispatch<React.SetStateAction<Course[]>>;
 }
 
+// Cast the imported subject data to the correct type
+const typedSubjectData: SubjectData = subjectData;
+
 /**
- * CourseInputSection component allows users to input and manage course information.
+ * CourseInputSection Component
  *
- * @param {CourseInputSectionProps} props - The component props
- * @returns {JSX.Element} The rendered CourseInputSection component
+ * This component allows users to input multiple courses by selecting a subject
+ * and course number. It provides autocomplete suggestions for both fields and
+ * allows adding/removing courses dynamically.
+ *
+ * @param {Course[]} courses - Array of current course selections
+ * @param {Function} setCourses - Function to update the courses array
  */
 export default function CourseInputSection({
   courses,
   setCourses,
 }: CourseInputSectionProps) {
+  // State for available subjects and course numbers
+  const [subjects, setSubjects] = useState<string[]>(Object.keys(subjectData));
+  const [courseNumbers, setCourseNumbers] = useState<string[]>([]);
+
   /**
-   * Handles changes to course input fields.
-   *
-   * @param {number} index - The index of the course being modified
-   * @param {"subject" | "courseNumber"} field - The field being modified
-   * @param {string} value - The new value for the field
+   * Handle changes to course inputs
+   * @param {number} index - Index of the course being modified
+   * @param {"subject" | "courseNumber"} field - Field being changed
+   * @param {string} value - New value for the field
    */
   const handleCourseChange = (
     index: number,
@@ -40,11 +52,17 @@ export default function CourseInputSection({
   ) => {
     const newCourses = [...courses];
     newCourses[index] = { ...newCourses[index], [field]: value };
+
+    // Reset course number when subject changes
+    if (field === "subject") {
+      newCourses[index].courseNumber = "";
+    }
+
     setCourses(newCourses);
   };
 
   /**
-   * Adds a new empty course to the list.
+   * Add a new empty course to the list
    */
   const addCourse = () => {
     if (courses.length < 8) {
@@ -53,24 +71,32 @@ export default function CourseInputSection({
   };
 
   /**
-   * Removes a course from the list.
-   *
-   * @param {number} index - The index of the course to remove
+   * Remove a course from the list
+   * @param {number} index - Index of the course to remove
    */
   const removeCourse = (index: number) => {
     const newCourses = courses.filter((_, i) => i !== index);
     setCourses(newCourses);
   };
 
+  // Update available course numbers when subject changes
+  useEffect(() => {
+    const lastCourse = courses[courses.length - 1];
+    if (lastCourse && lastCourse.subject) {
+      setCourseNumbers(typedSubjectData[lastCourse.subject] || []);
+    } else {
+      setCourseNumbers([]);
+    }
+  }, [courses]);
+
   return (
     <div className="flex justify-center items-center flex-col my-8 px-4">
-      {/* Section Header */}
       <div className="w-full max-w-4xl p-8 bg-neutral shadow-lg rounded-xl text-center">
         <h1 className="font-main text-5xl font-extrabold mb-6 text-primary">
           Course Input
         </h1>
 
-        {/* Instructions */}
+        {/* Instructions for users */}
         <div className="space-y-4 mb-8">
           <p className="text-lg mt-2">
             Enter the subject and course number for each class you are taking
@@ -84,37 +110,69 @@ export default function CourseInputSection({
           </p>
         </div>
 
-        {/* Courses Input Form */}
         <div className="bg-primary shadow-xl rounded-lg p-6">
           <div className="grid grid-cols-1 gap-6">
+            {/* Render input fields for each course */}
             {courses.map((course, index) => (
               <div
                 key={index}
                 className="flex items-center justify-center gap-x-4 ml-16"
               >
-                {/* Subject input field */}
-                <input
-                  type="text"
-                  placeholder="Subject"
-                  value={course.subject}
-                  onChange={(e) =>
-                    handleCourseChange(index, "subject", e.target.value)
-                  }
-                  className="text-transform: uppercase font-main bg-accent text-lg input input-bordered w-48 text-center focus:outline-none focus:ring-2 focus:ring-secondary"
-                />
-                <span className="text-3xl text-neutral">-</span>
-                {/* Course number input field */}
-                <input
-                  type="text"
-                  placeholder="Course Number"
-                  value={course.courseNumber}
-                  onChange={(e) =>
-                    handleCourseChange(index, "courseNumber", e.target.value)
-                  }
-                  className="text-transform: uppercase font-main bg-accent text-lg input input-bordered w-48 text-center focus:outline-none focus:ring-2 focus:ring-secondary"
-                />
+                {/* Subject input with autocomplete */}
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Subject"
+                    value={course.subject}
+                    onChange={(e) =>
+                      handleCourseChange(
+                        index,
+                        "subject",
+                        e.target.value.toUpperCase()
+                      )
+                    }
+                    className="text-transform: uppercase font-main bg-accent text-lg input input-bordered w-48 text-center focus:outline-none focus:ring-2 focus:ring-secondary"
+                    list={`subjects-${index}`}
+                  />
+                  <datalist id={`subjects-${index}`}>
+                    {subjects
+                      .filter((subject) => subject.startsWith(course.subject))
+                      .map((subject) => (
+                        <option key={subject} value={subject} />
+                      ))}
+                  </datalist>
+                </div>
 
-                {/* Remove Course Button */}
+                <span className="text-3xl text-neutral">-</span>
+
+                {/* Course number input with autocomplete */}
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Course NUM"
+                    value={course.courseNumber}
+                    onChange={(e) =>
+                      handleCourseChange(
+                        index,
+                        "courseNumber",
+                        e.target.value.toUpperCase()
+                      )
+                    }
+                    className="text-transform: uppercase font-main bg-accent text-lg input input-bordered w-48 text-center focus:outline-none focus:ring-2 focus:ring-secondary"
+                    list={`courseNumbers-${index}`}
+                  />
+                  <datalist id={`courseNumbers-${index}`}>
+                    {courseNumbers
+                      .filter((number) =>
+                        number.startsWith(course.courseNumber)
+                      )
+                      .map((number) => (
+                        <option key={number} value={number} />
+                      ))}
+                  </datalist>
+                </div>
+
+                {/* Remove course button (hidden for the first course) */}
                 {courses.length > 1 && index > 0 ? (
                   <button
                     className="font-main btn btn-circle bg-accent text-xl ml-2 text-center border-none hover:bg-secondary hover:text-white"
@@ -159,7 +217,7 @@ export default function CourseInputSection({
             ))}
           </div>
 
-          {/* Add Course Button */}
+          {/* Add course button (visible only if less than 8 courses) */}
           {courses.length < 8 && (
             <div className="flex justify-center mt-6 mr-2">
               <button
