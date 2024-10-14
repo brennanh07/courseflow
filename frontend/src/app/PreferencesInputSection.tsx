@@ -169,7 +169,8 @@ export default function PreferencesInputSection({
             schedule generation process
           </p>
           <p className="text-secondary text-center">
-            If you want a preference to have no effect, set it to 0.0
+            If you want a preference to have no effect, set it to &apos; 0
+            &apos;
           </p>
           {/* Class Days Weight */}
           <div className="flex flex-col gap-y-2 items-center">

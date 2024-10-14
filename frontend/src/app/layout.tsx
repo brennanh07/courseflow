@@ -2,7 +2,7 @@ import React from "react";
 import { Metadata } from "next";
 import "./globals.css";
 import SmartClassSchedulerButton from "./NavButton";
-import GoogleAnalytics from "./GoogleAnalytics";
+import { GoogleAnalytics } from '@next/third-parties/google'
 
 export const metadata: Metadata = {
   title: {
@@ -28,8 +28,8 @@ export default function RootLayout({
           </div>
         </div>
         {children}
-        <GoogleAnalytics GA_MEASUREMENT_ID="G-DX4DXYGB7K" />
       </body>
+      <GoogleAnalytics gaId="G-DX4DXYGB7K" />
     </html>
   );
 }

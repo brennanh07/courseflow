@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://backend:8000
+
+  backend:
+    build: ./backend.0
+    ports:
+      - "8000:8000"
+    environment:
+    - DATABASE_HOST=host.docker.internal  # Connect to local MySQL
+    - DATABASE_PORT=3306
+    - DATABASE_NAME=${DB_NAME}
+    - DATABASE_USER=${DB_USER}
+    - DATABASE_PASSWORD=${DB_PASSWORD}

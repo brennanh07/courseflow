@@ -273,6 +273,13 @@ export default function Home() {
     }));
   };
 
+  const handleReturnToCourseInput = () => {
+    setStep(1);
+    setIsGenerateButtonPressed(false);
+    setErrorMessage("");
+    setIsTimeout(false);
+  };
+
   return (
     <div
       className="flex flex-col items-center bg-cover bg-center bg-no-repeat bg-slate-200 min-h-screen"
@@ -403,7 +410,12 @@ export default function Home() {
         <div className="flex flex-col items-center p-4 -mt-10 -mb-20 w-full">
           <div className="flex justify-between items-center w-full mb-4">
             <div className="w-1/3">
-              {" "}
+              <button
+                className="btn btn-primary text-white font-main ml-16"
+                onClick={handleReturnToCourseInput}
+              >
+                Return to Course Input
+              </button>{" "}
               {/* This empty div helps with centering */}
             </div>
             <span className="text-lg font-main text-center w-1/3 font-bold">
