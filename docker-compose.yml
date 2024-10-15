@@ -6,7 +6,7 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - NEXT_PUBLIC_API_URL=http://54.226.39.153
+      - NEXT_PUBLIC_API_URL=https://54.226.39.153
 
   backend:
     build: ./backend.0
