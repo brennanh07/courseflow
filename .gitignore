@@ -19,7 +19,7 @@ build/
 *.jar
 
 # Ignore package lock files
-package-lock.json
+# package-lock.json
 yarn.lock
 
 # Byte-compiled / optimized / DLL files
@@ -139,9 +139,11 @@ yarn-error.log*
 # Windows specific files
 Thumbs.db
 
-*.json
+# *.json
 
 pipfile.lock
 pipfile
 
 db.sqlite3
+
+courseflow-surfacestudio.pem
