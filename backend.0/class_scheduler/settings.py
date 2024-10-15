@@ -64,10 +64,11 @@ MIDDLEWARE = [
 ]
 
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",  # Add your frontend URL here
+    "http://localhost:3000", 
     "http://127.0.0.1:3000",
     "https://localhost:3000",
-    "https://127.0.0.1:3000"
+    "https://127.0.0.1:3000",
+    "http://courseflow-load-balancer-216736559.us-east-1.elb.amazonaws.com",
 ]
 
 CORS_ALLOW_METHODS = [
@@ -114,7 +115,7 @@ DATABASES = {
         'NAME': env('DB_NAME'),
         'USER': env('DB_USER'),
         'PASSWORD': env('DB_PASSWORD'),
-        'HOST': 'host.docker.internal',
+        'HOST': env('DB_HOST'),
         'PORT': env('DB_PORT'),
     }
 }
