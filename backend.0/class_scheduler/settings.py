@@ -71,6 +71,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://courseflow-load-balancer-216736559.us-east-1.elb.amazonaws.com",
     "http://54.226.39.153",
     "http://54.226.39.153:3000",
+    "https://54.226.39.153",
 ]
 
 CORS_ALLOW_METHODS = [
