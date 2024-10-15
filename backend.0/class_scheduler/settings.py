@@ -69,6 +69,9 @@ CORS_ALLOWED_ORIGINS = [
     "https://localhost:3000",
     "https://127.0.0.1:3000",
     "http://courseflow-load-balancer-216736559.us-east-1.elb.amazonaws.com",
+    "http://54.226.39.153/",
+    "http://54.226.39.153:3000",
+    "http://54.226.39.153",
 ]
 
 CORS_ALLOW_METHODS = [
@@ -213,5 +216,3 @@ REST_FRAMEWORK = {
 
 # CORS_ALLOWED_ORIGINS = env.list('CORS_ALLOWED_ORIGINS', default=[])
 # CORS_ALLOW_ALL_ORIGINS = env.bool('CORS_ALLOW_ALL_ORIGINS', default=False)
-
-CORS_ALLOW_ALL_ORIGINS = True
