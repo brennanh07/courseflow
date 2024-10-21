@@ -56,7 +56,7 @@ class SectionsSpider(scrapy.Spider):
                 url=self.start_urls[0],
                 formdata={
                     'CAMPUS': '0',
-                    'TERMYEAR': '202409',
+                    'TERMYEAR': '202501',
                     'CORE_CODE': 'AR%',
                     'subj_code': subject,
                     'SCHDTYPE': '%',

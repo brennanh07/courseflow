@@ -144,7 +144,7 @@ export default function Home() {
     console.log("Payload:", payload);
 
     // Make API request to generate schedules
-    fetch("http://54.226.39.153:8000/api/v1/generate-schedules/", {
+    fetch("http://127.0.0.1:8000/api/v1/generate-schedules/", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
