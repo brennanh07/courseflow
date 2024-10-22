@@ -91,18 +91,18 @@ export default function CourseInputSection({
 
   return (
     <div className="flex justify-center items-center flex-col my-8 px-4">
-      <div className="w-full max-w-4xl p-8 bg-neutral shadow-lg rounded-xl text-center">
-        <h1 className="font-main text-5xl font-extrabold mb-6 text-primary">
+      <div className="w-full max-w-4xl p-4 sm:p-6 md:p-8 bg-neutral shadow-lg rounded-xl text-center">
+        <h1 className="font-main text-3xl sm:text-4xl md:text-5xl font-extrabold mb-4 sm:mb-6 text-primary">
           Course Input
         </h1>
 
         {/* Instructions for users */}
-        <div className="space-y-4 mb-8">
-          <p className="text-lg mt-2">
+        <div className="space-y-2 sm:space-y-4 mb-6 sm:mb-8">
+          <p className="text-base sm:text-lg mt-2">
             Enter the subject and course number for each class you are taking
           </p>
-          <p className="text-lg">Example: MATH-1225</p>
-          <p className="text-sm mt-2 text-gray-600">
+          <p className="text-base sm:text-lg">Example: MATH-1225</p>
+          <p className="text-xs sm:text-sm mt-2 text-gray-600">
             If a course has both a lecture and lab, please specify the lab by
             adding a &quot;B&quot; to the course number.
             <br />
@@ -110,16 +110,16 @@ export default function CourseInputSection({
           </p>
         </div>
 
-        <div className="bg-primary shadow-xl rounded-lg p-6">
-          <div className="grid grid-cols-1 gap-6">
+        <div className="bg-primary shadow-xl rounded-lg p-4 sm:p-6">
+          <div className="grid grid-cols-1 gap-4 sm:gap-6">
             {/* Render input fields for each course */}
             {courses.map((course, index) => (
               <div
                 key={index}
-                className="flex items-center justify-center gap-x-4 ml-16"
+                className="flex items-center justify-center gap-x-4 ml-16 sm:flex-row flex-col sm:gap-4"
               >
                 {/* Subject input with autocomplete */}
-                <div className="relative">
+                <div className="relative w-full sm:w-auto">
                   <input
                     type="text"
                     placeholder="Subject"
@@ -131,7 +131,7 @@ export default function CourseInputSection({
                         e.target.value.toUpperCase()
                       )
                     }
-                    className="text-transform: uppercase font-main bg-accent text-lg input input-bordered w-48 text-center focus:outline-none focus:ring-2 focus:ring-secondary"
+                    className="text-transform: uppercase font-main bg-accent text-base sm:text-lg input input-bordered w-full sm:w-40 md:w-48 text-center focus:outline-none focus:ring-2 focus:ring-secondary"
                     list={`subjects-${index}`}
                   />
                   <datalist id={`subjects-${index}`}>
@@ -143,10 +143,10 @@ export default function CourseInputSection({
                   </datalist>
                 </div>
 
-                <span className="text-3xl text-neutral">-</span>
+                <span className="text-2xl sm:text-3xl text-neutral">-</span>
 
                 {/* Course number input with autocomplete */}
-                <div className="relative">
+                <div className="relative w-full sm:w-auto">
                   <input
                     type="text"
                     placeholder="Course NUM"
@@ -158,7 +158,7 @@ export default function CourseInputSection({
                         e.target.value.toUpperCase()
                       )
                     }
-                    className="text-transform: uppercase font-main bg-accent text-lg input input-bordered w-48 text-center focus:outline-none focus:ring-2 focus:ring-secondary"
+                    className="text-transform: uppercase font-main bg-accent text-base sm:text-lg input input-bordered w-full sm:w-40 md:w-48 text-center focus:outline-none focus:ring-2 focus:ring-secondary"
                     list={`courseNumbers-${index}`}
                   />
                   <datalist id={`courseNumbers-${index}`}>
@@ -175,7 +175,7 @@ export default function CourseInputSection({
                 {/* Remove course button (hidden for the first course) */}
                 {courses.length > 1 && index > 0 ? (
                   <button
-                    className="font-main btn btn-circle bg-accent text-xl ml-2 text-center border-none hover:bg-secondary hover:text-white"
+                    className="font-main btn btn-circle bg-accent text-xl text-center border-none hover:bg-secondary hover:text-white mt-2 sm:mt-0"
                     onClick={() => removeCourse(index)}
                   >
                     <svg
@@ -194,7 +194,7 @@ export default function CourseInputSection({
                     </svg>
                   </button>
                 ) : (
-                  <div className="ml-2" style={{ visibility: "hidden" }}>
+                  <div className="mt-2 sm:mt-0" style={{ visibility: "hidden" }}>
                     <button className="font-main btn btn-circle">
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -219,7 +219,7 @@ export default function CourseInputSection({
 
           {/* Add course button (visible only if less than 8 courses) */}
           {courses.length < 8 && (
-            <div className="flex justify-center mt-6 mr-2">
+            <div className="flex justify-center mt-4 sm:mt-6">
               <button
                 className="font-main bg-accent btn btn-circle text-lg text-center border-none hover:bg-secondary hover:text-white"
                 onClick={addCourse}
