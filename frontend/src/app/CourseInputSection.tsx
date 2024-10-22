@@ -81,13 +81,22 @@ export default function CourseInputSection({
 
   // Update available course numbers when subject changes
   useEffect(() => {
-    const lastCourse = courses[courses.length - 1];
-    if (lastCourse && lastCourse.subject) {
-      setCourseNumbers(typedSubjectData[lastCourse.subject] || []);
+    if (courses.length > 0) {
+      const lastCourse = courses[courses.length - 1];
+      if (
+        lastCourse &&
+        lastCourse.subject &&
+        typedSubjectData &&
+        typedSubjectData[lastCourse.subject]
+      ) {
+        setCourseNumbers(typedSubjectData[lastCourse.subject]);
+      } else {
+        setCourseNumbers([]);
+      }
     } else {
       setCourseNumbers([]);
     }
-  }, [courses]);
+  }, [courses, typedSubjectData]);
 
   return (
     <div className="flex justify-center items-center flex-col my-8 px-4">
@@ -194,7 +203,10 @@ export default function CourseInputSection({
                     </svg>
                   </button>
                 ) : (
-                  <div className="mt-2 sm:mt-0" style={{ visibility: "hidden" }}>
+                  <div
+                    className="mt-2 sm:mt-0"
+                    style={{ visibility: "hidden" }}
+                  >
                     <button className="font-main btn btn-circle">
                       <svg
                         xmlns="http://www.w3.org/2000/svg"

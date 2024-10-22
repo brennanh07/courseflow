@@ -243,30 +243,32 @@ export default function Home() {
 
   // Function to get CRNs of the current schedule
   const getCurrentScheduleCRNs = () => {
-    if (
-      schedules.length === 0 ||
-      currentScheduleIndex < 0 ||
-      currentScheduleIndex >= schedules.length
-    ) {
-      console.log("No schedules available or invalid index");
+    // Only proceed if we have valid schedules
+    if (!schedules || schedules.length === 0) {
       return [];
     }
-
+  
+    // Make sure currentScheduleIndex is valid
+    if (currentScheduleIndex < 0 || currentScheduleIndex >= schedules.length) {
+      return [];
+    }
+  
     const currentSchedule = schedules[currentScheduleIndex];
-    if (!currentSchedule || !Array.isArray(currentSchedule)) {
-      console.log("Current schedule is not an array");
+    if (!Array.isArray(currentSchedule)) {
       return [];
     }
-
+  
     const uniqueClassesAndCRNs = new Map();
-
+  
     currentSchedule.forEach((event) => {
-      const className = event.title.split(": ")[0];
-      if (!uniqueClassesAndCRNs.has(className)) {
-        uniqueClassesAndCRNs.set(className, event.crn);
+      if (event && event.title && event.crn) {
+        const className = event.title.split(": ")[0];
+        if (!uniqueClassesAndCRNs.has(className)) {
+          uniqueClassesAndCRNs.set(className, event.crn);
+        }
       }
     });
-
+  
     return Array.from(uniqueClassesAndCRNs, ([className, crn]) => ({
       className,
       crn,
@@ -406,7 +408,7 @@ export default function Home() {
       )}
 
       {/* Step 4 - Generated Schedules */}
-      {step === 4 && (
+      {step === 4 && schedules.length > 0 && (
         <div className="flex flex-col items-center p-4 -mt-10 -mb-20 w-full">
           <div className="flex justify-between items-center w-full mb-4">
             <div className="w-1/3">
@@ -573,7 +575,7 @@ export default function Home() {
 
       {/* CRN Modal */}
       <Dialog
-        open={isCRNModalOpen}
+        open={isCRNModalOpen && schedules.length > 0}
         onClose={() => setIsCRNModalOpen(false)}
         className="relative z-10"
       >
