@@ -2,7 +2,7 @@ from .fetch_sections import SectionFetcher
 from .schedule_formatter import ScheduleFormatter
 from .schedule_generator import ScheduleGenerator
 
-def process_schedules(courses, breaks, preferences, max_schedules=10):
+def process_schedules(courses, breaks, preferences, max_schedules=20):
     """
     Main function to generate and format schedules for the given list of courses and input.
     
@@ -24,16 +24,16 @@ def process_schedules(courses, breaks, preferences, max_schedules=10):
     
     # Step 1: Fetch sections from the database
     section_fetcher = SectionFetcher(courses)
-    section_dict, section_time_dict = section_fetcher.fetch_sections()
+    section_dict, section_time_dict, missing_sections = section_fetcher.fetch_sections()
     
-    if not section_dict:
-        # logger.warning("No sections found. Aborting schedule generation.")
-        return []
+    if missing_sections:
+        error_messages = [f"No sections found for {course}" for course in missing_sections]
+        return error_messages
     
     # Step 2: Generate and score valid schedules dynamically
     # logger.info("Generating schedules")
     schedule_generator = ScheduleGenerator(section_dict, section_time_dict, breaks, preferences, max_schedules)
-    top_schedules = schedule_generator.generate_schedules()
+    top_schedules, total_schedules = schedule_generator.generate_schedules()
     
     # logger.info(f"Generated {len(top_schedules)} schedules")
     
@@ -42,4 +42,4 @@ def process_schedules(courses, breaks, preferences, max_schedules=10):
     formatted_schedules = formatter.print_ranked_schedules(top_schedules, top_n=max_schedules)
     
     # logger.info("Schedule processing complete")
-    return formatted_schedules
+    return (formatted_schedules, total_schedules)

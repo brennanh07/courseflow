@@ -10,9 +10,13 @@ import interactionPlugin from "@fullcalendar/interaction";
 import momentPlugin from "@fullcalendar/moment";
 import { Button, Dialog, DialogPanel, DialogTitle } from "@headlessui/react";
 import "./globals.css";
+import { text } from "stream/consumers";
+import { ProgressBar } from "./ProgressBar";
+import { ResultsModal } from "./ResultsModal";
 
 // Define interfaces for data structures
 interface Course {
+  id: string;
   subject: string;
   courseNumber: string;
 }
@@ -34,14 +38,62 @@ interface ClassEvent {
   start: Date | string;
   end: Date | string;
   crn: string;
+  location: string;
+  professor: string;
+  gpa: number | string;
+  totalAvgGPA: number;
+  backgroundColor?: string;
+  borderColor?: string;
+  textColor?: string;
 }
+
+const COLOR_PALETTE = [
+  {
+    backgroundColor: "#861F41", // Chicago Maroon
+    textColor: "#FFFFFF", // White
+  },
+  {
+    backgroundColor: "#E5751F", // Burnt Orange
+    textColor: "#FFFFFF", // White
+  },
+  {
+    backgroundColor: "#75787B", // Hokie Stone Gray
+    textColor: "#FFFFFF", // White
+  },
+  {
+    backgroundColor: "#333333", // Jet Black
+    textColor: "#FFFFFF", // White
+  },
+  {
+    backgroundColor: "#D9B99B", // Tan
+    textColor: "#FFFFFF", // White
+  },
+  {
+    backgroundColor: "#508590", // Sustainable Teal
+    textColor: "#FFFFFF", // White
+  },
+  {
+    backgroundColor: "#2C5234", // Forest Green
+    textColor: "#FFFFFF", // White
+  },
+  {
+    backgroundColor: "#642667", // Pylon Purple
+    textColor: "#FFFFFF", // White
+  },
+];
 
 export default function Home() {
   // State variables
   const [step, setStep] = useState<number>(1);
+
   const [courses, setCourses] = useState<Course[]>([
-    { subject: "", courseNumber: "" },
+    {
+      id: `course-initial-${Date.now()}`,
+      subject: "",
+      courseNumber: "",
+    },
   ]);
+
   const [breaks, setBreaks] = useState<BreakPeriod[]>([
     { startTime: "", endTime: "" },
   ]);
@@ -63,10 +115,26 @@ export default function Home() {
   const [currentScheduleIndex, setCurrentScheduleIndex] = useState<number>(0);
   const [isCRNModalOpen, setIsCRNModalOpen] = useState<boolean>(false);
   const [copiedCRN, setCopiedCRN] = useState<string | null>(null);
+  const [showProgress, setShowProgress] = useState<boolean>(false);
+  const [showResultsModal, setShowResultsModal] = useState<boolean>(false);
+  const [totalSchedules, setTotalSchedules] = useState<number>(0);
+  const [isProgressComplete, setIsProgressComplete] = useState<boolean>(false);
+  const [isApiComplete, setIsApiComplete] = useState<boolean>(false);
 
   // Navigation functions
-  const handleNext = () => setStep(step + 1);
-  const handlePrevious = () => setStep(step - 1);
+  const handleNext = () => {
+    setStep(step + 1);
+    setErrorMessage(""); // Clear any error messages
+    setIsGenerateButtonPressed(false); // Reset the generate button state
+    setIsTimeout(false); // Reset timeout state if it exists
+  };
+
+  const handlePrevious = () => {
+    setStep(step - 1);
+    setErrorMessage(""); // Clear any error messages
+    setIsGenerateButtonPressed(false); // Reset the generate button state
+    setIsTimeout(false); // Reset timeout state if it exists
+  };
 
   // Time conversion functions
   function convertTo24Hour(time: string): string {
@@ -108,6 +176,32 @@ export default function Home() {
     return `${hours}:${minutesStr} ${ampm}`;
   }
 
+  const processEvents = (scheduleEvents: any[]) => {
+    const courseColors = new Map();
+    let colorIndex = 0;
+
+    return scheduleEvents.map((event) => {
+      const courseName = event.title.split(": ")[0];
+
+      if (!courseColors.has(courseName)) {
+        courseColors.set(
+          courseName,
+          COLOR_PALETTE[colorIndex % COLOR_PALETTE.length]
+        );
+        colorIndex++;
+      }
+
+      const colors = courseColors.get(courseName);
+
+      return {
+        ...event,
+        backgroundColor: colors.backgroundColor,
+        borderColor: colors.backgroundColor,
+        textColor: colors.textColor,
+      };
+    });
+  };
+
   // Function to handle schedule generation
   const handleGenerateSchedules = () => {
     // Validation check for weights
@@ -116,10 +210,13 @@ export default function Home() {
       return;
     }
 
-    setIsLoading(true);
+    setShowProgress(true);
+    // setIsLoading(true);
     setIsGenerateButtonPressed(true);
     setErrorMessage("");
     setIsTimeout(false);
+    setIsProgressComplete(false);
+    setIsApiComplete(false);
 
     // Format breaks for API request
     const formattedBreaks = breaks
@@ -144,6 +241,7 @@ export default function Home() {
     console.log("Payload:", payload);
 
     // Make API request to generate schedules
+    // fetch("http://127.0.0.1:8000/api/v1/generate-schedules/", {
     fetch("https://courseflow.applikuapp.com/api/v1/generate-schedules/", {
       method: "POST",
       headers: {
@@ -155,17 +253,36 @@ export default function Home() {
       .then((data) => {
         console.log("API Response Data:", data);
 
+        // Check if schedules is an array and contains error messages
+        if (
+          Array.isArray(data.schedules) &&
+          data.schedules.length > 0 &&
+          typeof data.schedules[0] === "string" &&
+          data.schedules[0].startsWith("No sections found")
+        ) {
+          const errorMessages = data.schedules
+            .filter((msg: string) => msg.startsWith("No sections found"))
+            .join("\n");
+
+          setErrorMessage(errorMessages);
+          // setIsLoading(false);
+          setShowProgress(false);
+          return;
+        }
+
         if (data.schedules.length === 0) {
           setErrorMessage(
             "No schedules found. Please remove one or more breaks."
           );
-          setIsLoading(false);
+          // setIsLoading(false);
+          setShowProgress(false);
           return;
         }
 
         if (data.schedules[0] === "timeout") {
           setIsTimeout(true);
-          setIsLoading(false);
+          // setIsLoading(false);
+          setShowProgress(false);
           return;
         }
 
@@ -184,23 +301,64 @@ export default function Home() {
                 start: convertToISODate(dayOfWeek, startTime),
                 end: convertToISODate(dayOfWeek, endTime),
                 crn: `${schedule.crns[title.split(": ")[0]]}`,
+                location: `${schedule.locations[title.split(": ")[0]]}`,
+                professor: `${schedule.professors[title.split(": ")[0]]}`,
+                gpa:
+                  Number(schedule.gpas[title.split(": ")[0]]) === 0
+                    ? "N/A"
+                    : String(Number(schedule.gpas[title.split(": ")[0]])),
+                totalAvgGPA: schedule.schedule_total_avg_gpa === null ? "N/A" : schedule.schedule_total_avg_gpa,
               });
             });
           });
-          allSchedules.push(scheduleEvents);
+          allSchedules.push(processEvents(scheduleEvents));
         });
 
         setSchedules(allSchedules);
         setEvents(allSchedules[0]);
         setCurrentScheduleIndex(0);
-        setStep(step + 1);
-        setIsLoading(false);
+        setTotalSchedules(data.total_schedules);
+        setIsApiComplete(true);
+        // setStep(step + 1);
+        // setIsLoading(false);
+        if (isProgressComplete) {
+          setShowResultsModal(true);
+        }
       })
       .catch((error) => {
         console.error("Error:", error);
-        setIsLoading(false);
+        // setIsLoading(false);
+        setShowProgress(false);
         setIsTimeout(true);
       });
+  };
+
+  const handleViewSchedules = () => {
+    setStep(4);
+    setShowProgress(false);
+  };
+
+  // Function to check if we should show results modal
+  const shouldShowResults = () => {
+    return (
+      showResultsModal &&
+      isProgressComplete &&
+      isApiComplete &&
+      !isTimeout &&
+      !errorMessage
+    );
+  };
+
+  // Function to handle progress bar completion
+  const handleProgressComplete = () => {
+    setIsProgressComplete(true);
+    if (isApiComplete && !isTimeout && !errorMessage) {
+      setShowResultsModal(true);
+    }
+  };
+
+  const handleResultsModalClose = () => {
+    setShowResultsModal(false);
   };
 
   // Functions to navigate between generated schedules
@@ -224,6 +382,10 @@ export default function Home() {
       start: info.event.start,
       end: info.event.end,
       crn: info.event.extendedProps.crn,
+      location: info.event.extendedProps.location,
+      professor: info.event.extendedProps.professor,
+      gpa: info.event.extendedProps.gpa,
+      totalAvgGPA: info.event.extendedProps.totalAvgGPA,
     });
     setIsModalOpen(true);
   };
@@ -247,19 +409,19 @@ export default function Home() {
     if (!schedules || schedules.length === 0) {
       return [];
     }
-  
+
     // Make sure currentScheduleIndex is valid
     if (currentScheduleIndex < 0 || currentScheduleIndex >= schedules.length) {
       return [];
     }
-  
+
     const currentSchedule = schedules[currentScheduleIndex];
     if (!Array.isArray(currentSchedule)) {
       return [];
     }
-  
+
     const uniqueClassesAndCRNs = new Map();
-  
+
     currentSchedule.forEach((event) => {
       if (event && event.title && event.crn) {
         const className = event.title.split(": ")[0];
@@ -268,7 +430,7 @@ export default function Home() {
         }
       }
     });
-  
+
     return Array.from(uniqueClassesAndCRNs, ([className, crn]) => ({
       className,
       crn,
@@ -388,24 +550,51 @@ export default function Home() {
         )}
       </div>
 
-      {/* Loading Spinner */}
-      {isLoading && (
-        <div className="flex justify-center">
-          <span className="loading loading-lg text-6xl"></span>
+      {!showProgress ? (
+        <>
+          {/* Steps Indicator UI*/}
+          {step !== 4 && (
+            <ul className="steps w-1/2 mb-5 font-main font-bold">
+              <li className={`step ${step >= 1 ? "step-primary" : ""}`}>
+                Courses
+              </li>
+              <li className={`step ${step >= 2 ? "step-primary" : ""}`}>
+                Breaks
+              </li>
+              <li className={`step ${step >= 3 ? "step-primary" : ""}`}>
+                Preferences
+              </li>
+            </ul>
+          )}
+        </>
+      ) : (
+        <div className="w-full max-w-2xl mx-auto mt-8 mb-8">
+          <ProgressBar onComplete={handleProgressComplete} />
         </div>
       )}
-      {isTimeout && (
-        <div className="flex justify-center">
-          <span className="text-lg font-main text-red-500">
-            Too many possible schedules. Please add breaks.
-          </span>
-        </div>
-      )}
-      {errorMessage && (
-        <div className="flex justify-center">
-          <span className="text-lg font-main text-red-500">{errorMessage}</span>
-        </div>
-      )}
+
+      {/* Loading Spinner and Error Messages - Now positioned below the progress bar */}
+      <div className="flex flex-col items-center mt-4">
+        {isLoading && (
+          <div className="flex justify-center">
+            <span className="loading loading-lg text-6xl"></span>
+          </div>
+        )}
+        {isTimeout && (
+          <div className="flex justify-center">
+            <span className="text-lg font-main text-red-500">
+              Too many possible schedules. Please add breaks.
+            </span>
+          </div>
+        )}
+        {errorMessage && (
+          <div className="flex justify-center">
+            <span className="text-lg font-main text-red-500 whitespace-pre-line text-center">
+              {errorMessage}
+            </span>
+          </div>
+        )}
+      </div>
 
       {/* Step 4 - Generated Schedules */}
       {step === 4 && schedules.length > 0 && (
@@ -420,9 +609,14 @@ export default function Home() {
               </button>{" "}
               {/* This empty div helps with centering */}
             </div>
-            <span className="text-lg font-main text-center w-1/3 font-bold">
-              Schedule {currentScheduleIndex + 1} of {schedules.length}
-            </span>
+            <div className="flex flex-col items-center text-center w-full">
+              <h1 className="text-3xl font-main text-center w-1/3 font-bold">
+                Schedule {currentScheduleIndex + 1} of {schedules.length}
+              </h1>
+              <span className="text-md font-main text-center w-1/3">
+                Overall Average GPA: {events[0]?.totalAvgGPA || "N/A"}
+              </span>
+            </div>
             <div className="w-1/3 flex justify-end">
               <button
                 className="btn btn-secondary text-white font-main mr-16"
@@ -478,7 +672,6 @@ export default function Home() {
                 titleFormat={"MMMM D, YYYY"}
                 dayHeaderFormat={"ddd"}
                 eventClick={handleEventClick}
-                eventColor="#861F41"
               />
             </div>
             <button
@@ -504,17 +697,6 @@ export default function Home() {
         </div>
       )}
 
-      {/* Steps Indicator UI*/}
-      {step !== 4 && (
-        <ul className="steps w-1/2 mb-5 font-main font-bold">
-          <li className={`step ${step >= 1 ? "step-primary" : ""}`}>Courses</li>
-          <li className={`step ${step >= 2 ? "step-primary" : ""}`}>Breaks</li>
-          <li className={`step ${step >= 3 ? "step-primary" : ""}`}>
-            Preferences
-          </li>
-        </ul>
-      )}
-
       {/* Generate Schedules Button at the Bottom */}
       {step === 3 && !isGenerateButtonPressed && (
         <div className="w-full flex flex-col items-center mb-5">
@@ -524,9 +706,6 @@ export default function Home() {
           >
             Generate Schedules
           </button>
-          {errorMessage && (
-            <div className="text-red-500 text-lg font-main">{errorMessage}</div>
-          )}
         </div>
       )}
 
@@ -556,8 +735,17 @@ export default function Home() {
                   <strong>End:</strong>{" "}
                   {convertFromISODate(selectedEvent.end.toString())}
                 </p>
-                <p>
+                <p className="mb-2">
                   <strong>CRN:</strong> {selectedEvent.crn}
+                </p>
+                <p className="mb-2">
+                  <strong>Location:</strong> {selectedEvent.location}
+                </p>
+                <p className="mb-2">
+                  <strong>Instructor:</strong> {selectedEvent.professor}
+                </p>
+                <p className="">
+                  <strong>Average GPA Outcome:</strong> {selectedEvent.gpa}
                 </p>
                 <div className="mt-4">
                   <Button
@@ -622,12 +810,27 @@ export default function Home() {
                   >
                     Hokie Scheduler
                   </a>
+                  &nbsp;or{" "}
+                  <a
+                    href="https://selfservice.banner.vt.edu/ssb/hzskvtrq.P_AddDropCrse"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-500 underline"
+                  >
+                    Course Request
+                  </a>
                 </p>
               </div>
             </div>
           </DialogPanel>
         </div>
       </Dialog>
+      <ResultsModal
+        isOpen={shouldShowResults()}
+        onClose={handleResultsModalClose}
+        totalSchedules={totalSchedules}
+        onViewSchedules={handleViewSchedules}
+      />
     </div>
   );
 }

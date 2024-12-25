@@ -7,7 +7,7 @@ import { GoogleAnalytics } from '@next/third-parties/google'
 export const metadata: Metadata = {
   title: {
     absolute: "",
-    default: "Class Schedule Generator",
+    default: "CourseFlow",
     template: "%s | Class Schedule Generator",
   },
   description: "Program to generate optimal class schedules",
