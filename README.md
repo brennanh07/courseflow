@@ -18,7 +18,7 @@ Built with NextJS/TypeScript frontend and Django/MySQL backend.
 
 - **Real-time Progress Tracking:** Monitor schedule generation progress
 
-![CourseInput](https://github.com/brennanh07/SmartClass-Scheduler/Showcase_Images/CourseFlow_Course_Input.png)
+![CourseInput](https://github.com/brennanh07/SmartClass-Scheduler/blob/main/Showcase_Images/CourseFlow_Course_Input.png?raw=true)
 
 ### **Tech Stack**
 - **NextJS with TypeScript**
