@@ -20,6 +20,12 @@ Built with NextJS/TypeScript frontend and Django/MySQL backend.
 
 ![CourseInput](https://github.com/brennanh07/SmartClass-Scheduler/blob/main/Showcase_Images/CourseFlow_Course_Input.png?raw=true)
 
+![CourseInputFilter](https://github.com/brennanh07/SmartClass-Scheduler/blob/main/Showcase_Images/CourseFlow_Course_Input_Filter.png?raw=true)
+
+![BreaksInput](https://github.com/brennanh07/SmartClass-Scheduler/blob/main/Showcase_Images/CourseFlow_Breaks_Input.png?raw=true)
+
+![PreferencesInput](https://github.com/brennanh07/SmartClass-Scheduler/blob/main/Showcase_Images/CourseFlow_Preferences_Input.png?raw=true)
+
 ### **Tech Stack**
 - **NextJS with TypeScript**
 
